@@ -1,0 +1,97 @@
+﻿@{
+    ViewBag.Title = "Web Telemetry System «WebSphere»";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/Content/_CSS/Reports/zerozam.css" rel="stylesheet" />
+<link href="~/Content/_CSS/Mnemo/MnemoSingle.css" rel="stylesheet" /> 
+<script type="text/javascript" src="~/Scripts/_JS/common/OpcReadWrite.js"></script> 
+<script type="text/javascript" src="~/Scripts/_JS/AdditionalFunctions.js"></script> 
+<script type="text/javascript" src="~/Scripts/_JS/jquery/jquery-1.11.0.min.js"></script> 
+<script type="text/javascript" src="~/Scripts/_JS/common/MyTime.js"></script>
+<script type="text/javascript" src="~/Scripts/_JS/main.js"></script>
+<script type="text/javascript" src="~/Scripts/SVG/Main.js"></script>
+<script type="text/javascript" src="~/Scripts/SVG/Tag_types_update.js"></script>
+<script type="text/javascript" src="~/Scripts/snap/snap.svg.js"></script> 
+
+
+<link rel="stylesheet" type='text/css' href='/Content/_CSS/jqueryUI Theme/ui.jqgrid.css' />
+<link rel="stylesheet" type='text/css' href='/Content/_CSS/Reports/zerozam.css' />
+<!-- END -->
+<!-- Scripts-->
+<script type="text/javascript" src="/Scripts/_JS/jqGrid/grid.locale-ru.js"></script>
+<script type="text/javascript" src="/Scripts/_JS/jqGrid/jquery.jqGrid.min.js"></script> 
+<link rel="stylesheet" type='text/css' href='/Content/_CSS/jqueryUI Theme/ui.jqgrid.css' /> 
+<link rel="stylesheet" type="text/css" href="/Content/_CSS/jqueryUI Theme/jquery-ui-1.10.4.custom.min.css" />
+<link rel="stylesheet" type="text/css" href="/Content/_CSS/datetimepicker/jquery.datetimepicker.css" />
+<link rel="stylesheet" type="text/css" href="/Content/_CSS/Reports/Reports.css" />
+<link rel="stylesheet" type='text/css' href='/Content/_CSS/main.css' /> 
+<link rel="stylesheet" type='text/css' href='/Content/_CSS/Reports/zerozam.css' />
+   
+ <div  >
+<object id="svg" data="~/Content/_svg/Keremetovo.svg" type="image/svg+xml" style="display: table;  margin: 0 auto;"></object>
+   
+</div>
+ 
+<script type="text/javascript">
+
+     window.addEventListener("load",function() {InitMnemoSVG();});
+	 
+	 function updateIM2300Value(id,addmess) {
+        var options = {};
+        options.tag = id.getAttribute('data-tag');
+
+        
+        if ((id.getAttribute('data-koef') != null))
+            options.koef = parseFloat(id.getAttribute('data-koef')); 
+
+        if ((id.getAttribute('data-dict') != null))
+            options.dict = id.getAttribute('data-dict'); 
+        //options.func="updateUst";
+        //alert(options.tag); 
+            var deferredObject = $.Deferred();
+            var defaults = {
+                func: "OpcTagWriteValue", //alert, boolean,input 
+                type: "forced", //alert, boolean,input
+                tag: "default", //alert, boolean,input
+                value: 'default', //modal-sm, modal-lg
+                BitNo: null, //modal-sm, modal-lg
+                Len: null, //modal-sm, modal-lg
+                messageText: 'Ввести значение?',
+                koef:1,
+                tagid:2,
+                opcid:2,
+                dict:null
+            }
+            $.extend(defaults, options); 
+            //if (addmess!=undefined) defaults.messageText=defaults.messageText+addmess;
+
+ 
+
+              $('BODY').append(
+                  '<div id="ezAlerts" style="position:fixed;top: 150px;right: 0;bottom: 0;left: 0;">' +
+                  '<div class="modal-dialog" class="modal-sm">' +
+                  '<div class="modal-content">' +
+                  '<div id="ezAlerts-body" class="modal-body">' +
+                  '<div id="ezAlerts-message" ></div>' +
+                  '</div>' +
+                  '<div id="ezAlerts-footer" class="modal-footer">' +
+                  '</div>' +
+                  '</div>' +
+                  '</div>' +
+                  '</div>'
+              );
+              if(defaults.dict!=null) {
+                 var optsstr="";var opts = Dictionary[defaults.dict];for(var key in opts) optsstr=optsstr+"<option value='"+key+"'>"+opts[key]+"</option>";
+                 $('#ezAlerts-message').html(defaults.messageText + '<br /><br /><div class="form-group"><select  class="form-control" id="prompt">'+optsstr+'</select></div>');
+              }
+              else               
+                     $('#ezAlerts-message').html(defaults.messageText + '<br /><br /><div class="form-group"><input type="text" class="form-control" id="prompt" /></div>');
+                   
+              btnhtml = "<button id='ezok-btn' class='btn btn-primary'>Ok</button><button id='ezclose-btn' class='btn btn-default' onclick='CloseBSAlert()'>Отмена</button>";
+                     $('#ezAlerts-footer').html(btnhtml);
+                    //defaults.opcid: '" + opcid + "', defaults.tagid
+                    document.getElementById("ezok-btn").setAttribute("onclick", "OpcModalWrite(  '" + defaults.tag + "','" + defaults.tagid + "','" + defaults.opcid + "','" + defaults.func + "');CloseBSAlert();"); 
+        }
+    
+</script>

@@ -1,0 +1,386 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<link href="~/Content/JSTree/themes/default/style.min.css" rel="stylesheet" />
+<link href="~/Content/JSTree/jstree_style.css" rel="stylesheet" />
+<link href="~/Content/Configurator.css" rel="stylesheet" />
+
+<link href="~/Content/_CSS/Reports/zerozam.css" rel="stylesheet" /> 
+<script src="~/Scripts/jquery.validate.js"></script>
+<script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+<script src="~/Scripts/configurator.js"></script>
+<script src="~/Scripts/script.js"></script>
+<script type="text/javascript" src="~/Scripts/snap/snap.svg.js"></script>
+<script type="text/javascript" src="~/Scripts/SVG/Main.js"></script>
+<script type="text/javascript" src="~/Scripts/SVG/Tag_types_update.js"></script>
+<script type="text/javascript" src="~/Scripts/snap/snap.svg.js"></script>
+<script type="text/javascript" src="~/Scripts/_JS/AdditionalFunctions.js"></script> 
+<script src="~/Scripts/jstree.js"></script>
+<script type="text/javascript" src="~/Scripts/_JS/common/MyTime.js"></script>
+<script type="text/javascript" src="~/Scripts/_JS/main.js"></script>
+
+
+<div id="container" class="left-boxConfig"></div>
+
+<div class="right-boxConfig">
+    <div class="portlet floatL FloatLConfig">
+        <div class="div_inline FloatLConfig">
+            @*<div id="tagInfo" style="float:left;" class="tagInfo">Выберите узел для просмотра </div>*@
+            <div id="tagInfo">Выберите узел для просмотра </div>  @*class="tagInfo"*@
+
+        </div>
+    </div>
+</div>
+
+
+
+<script type="text/javascript">
+    
+    var  TREE_TAGS = new Array(),
+            TREE_VALS = new Array(),
+            OBJ_I = 0,
+            DHS = "---",
+            tags_tree = new Array();
+    $("#tagInfo").load(function () { partload });
+        var checkCopyNode = 0;
+      
+
+            $('#container').jstree({
+                @*'core': { 'data': [@Html.Raw(Model.CreateJsTree(1))] },*@
+                'core': {
+                    'data': [{
+                        'data': {
+                            "link": '/Mnemo/AGZU?mnemo=AGZU1part&objname=Крепостное&port=Port3&type=MassOzna160', 
+                        }, 'text': 'СамараИнвестНефть', 'icon': 'jstree-neftisa',
+	'children': [
+	{
+	    'data': { "link": '/Mnemo/MnemoPart?mnemo=Krepostnoe' },
+	    'id': '26968', 'text': 'Крепостное', 'icon': 'jstree-neftisa',
+		'children': [
+		{
+		    'data': {
+		        "link": '/Mnemo/AGZU?mnemo=AGZU1part&objname=Крепостное&port=Port3&type=MassOzna160',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "type": "AGZU"
+		    }, 'text': 'АГЗУ 160', 'icon': 'jstree-nodata',
+		    'children': [
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgnAI&objname=Крепостное&port=Port2&wellname=Well150',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well150.DI.0"
+		    }, 'text': 'Скважина 150', 'icon': 'jstree-type_5',
+		    'children': []
+		},
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon&objname=Крепостное&port=Port2&wellname=Well151',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well151.Regs.Status.0"
+		    }, 'text': 'Скважина 151', 'icon': 'jstree-type_5',
+			'children': [  ] },
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon2&objname=Крепостное&port=Port2&wellname=Well153',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well153.Regs.StoredStatus.0"
+		    }, 'text': 'Скважина 153', 'icon': 'jstree-type_5',
+			'children': [  ] },
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon2&objname=Крепостное&port=Port2&wellname=Well154',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well154.Regs.StoredStatus.0"
+		    }, 'text': 'Скважина 154', 'icon': 'jstree-type_5',
+			'children': [  ] },
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon&objname=Крепостное&port=Port2&wellname=Well155',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well155.Regs.Status.0"
+		    }, 'text': 'Скважина 155', 'icon': 'jstree-type_5',
+		    'children': [] }, 
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon&objname=Крепостное&port=Port2&wellname=Well159',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well159.Regs.Status.0"
+		    }, 'text': 'Скважина 159', 'icon': 'jstree-type_5',
+			'children': [  ] },
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgnAI&objname=Крепостное&port=Port2&wellname=Well160',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well160.DI.0"
+		    }, 'text': 'Скважина 160', 'icon': 'jstree-type_5',
+			'children': [  ] },
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon&objname=Крепостное&port=Port2&wellname=Well164',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well164.Regs.Status.0"
+		    }, 'text': 'Скважина 164', 'icon': 'jstree-type_5',
+			'children': [  ] },
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon&objname=Крепостное&port=Port2&wellname=Well165',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well165.Regs.Status.0"
+		    }, 'text': 'Скважина 165', 'icon': 'jstree-type_5',
+			'children': [  ] },
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon2&objname=Крепостное&port=Port2&wellname=Well166',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well166.Regs.StoredStatus.0"
+		    }, 'text': 'Скважина 166', 'icon': 'jstree-type_5',
+		    'children': []
+		},
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgnAI&objname=Крепостное&port=Port2&wellname=Well168',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well168.DI.0"
+		    }, 'text': 'Скважина 168', 'icon': 'jstree-type_5',
+		    'children': []
+		},
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgnAI&objname=Крепостное&port=Port2&wellname=Well170',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well170.DI.0"
+		    }, 'text': 'Скважина 170', 'icon': 'jstree-type_5',
+		    'children': []
+		},
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgnAI&objname=Крепостное&port=Port2&wellname=Well202',
+		        "tag": "Sfera.EksitonOpc.Крепостное.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well202.DI.0"
+		    }, 'text': 'Скважина 202', 'icon': 'jstree-type_5',
+		    'children': []
+		},
+		    ]
+		}, ]
+	},
+	{
+	    'data': { "link": '/Mnemo/MnemoPart?mnemo=Verbovskoe' },
+	    'id': '26969', 'text': 'Вербовское', 'icon': 'jstree-neftisa',
+		'children': [
+		{
+		    'data': {
+		        "link": '/Mnemo/AGZU?mnemo=AGZUpart&objname=%D0%92%D0%B5%D1%80%D0%B1%D0%BE%D0%B2%D1%81%D0%BA%D0%BE%D0%B5&port=Port2&type=MassEAOzna', 
+		        "tag": "Sfera.EksitonOpc.Вербовское._LinkError",
+		        "type": "AGZU",
+		    }, 'text': 'АГЗУ 4003', 'icon': 'jstree-type_5',
+			'children': [ 
+		{ 
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon&objname=Вербовское&port=Port4&wellname=Купер',
+		        "tag": "Sfera.EksitonOpc.Вербовское.CurrentChannel1", "ontag": "Sfera.EksitonOpc.Вербовское.tags.Port4.Купер.Regs.StoredStatus.01"
+		    },  'text': 'Купер', 'icon': 'jstree-type_5', 
+		    'children': []
+		}, {
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgnAI&objname=Вербовское&port=Port1&wellname=Well122',
+		        "tag": "Sfera.EksitonOpc.Вербовское.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well122.DI.0"
+		    }, 'text': 'Скважина 122', 'icon': 'jstree-type_5',
+		    'children': []
+		}, {
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgnKP&objname=Вербовское&port=Port1&wellname=Well123',
+		        "tag": "Sfera.EksitonOpc.Вербовское.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well123.DI.0"
+		    }, 'text': 'Скважина 123', 'icon': 'jstree-type_5',
+		    'children': []
+		}, {
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgnKP&objname=Вербовское&port=Port1&wellname=Well124',
+		        "tag": "Sfera.EksitonOpc.Вербовское.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well124.DI.0"
+		    }, 'text': 'Скважина 124', 'icon': 'jstree-type_5',
+		    'children': []
+		}, {
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgnKP&objname=Вербовское&port=Port1&wellname=Well128',
+		        "tag": "Sfera.EksitonOpc.Вербовское.CurrentChannel", "ontag": "Sfera.EksitonOpc.Крепостное.tags.Port2.Well128.DI.0"
+		    }, 'text': 'Скважина 128', 'icon': 'jstree-type_5',
+		    'children': []
+		},   
+			] }] }, 
+	{
+	    'id': '26970', 'text': 'Южно-золоторевское', 'icon': 'jstree-neftisa',
+	    'data': { "link": '/Mnemo/MnemoPart?mnemo=Zolotorevskoe' },
+		'children': [
+		{
+		    'data': {
+		        "link": '/Mnemo/AGZU?mnemo=AGZU1part&objname=Южно-золоторевское%20200&port=Port3&type=MassOzna200',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 200.CurrentChannel",
+		        "type": "AGZU",
+		    }, 'text': 'АГЗУ 200', 'icon': 'jstree-type_5',
+		    'children': [
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgn&objname=Южно-золоторевское%20200&port=Port2&wellname=Well200',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 200.CurrentChannel", "ontag": "Sfera.EksitonOpc.Южно-золоторевское 200.tags.Port2.Well200.DI.0"
+		    }, 'text': 'Скважина 200', 'icon': 'jstree-type_5',
+		    'children': []
+		},
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgn&objname=Южно-золоторевское%20200&port=Port2&wellname=Well251',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 200.CurrentChannel", "ontag": "Sfera.EksitonOpc.Южно-золоторевское 200.tags.Port2.Well251.DI.0"
+		    }, 'text': 'Скважина 251', 'icon': 'jstree-type_5',
+			'children': [  ] },                                                                                    
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon2&objname=Южно-золоторевское%20200&port=Port2&wellname=Well270',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 200.CurrentChannel", "ontag": "Sfera.EksitonOpc.Южно-золоторевское 200.tags.Port2.Well270.Regs.StoredStatus.0"
+		    }, 'text': 'Скважина 270', 'icon': 'jstree-type_5',
+			'children': [  ] },                                                                                    
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon2&objname=Южно-золоторевское%20200&port=Port2&wellname=Well310',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 200.CurrentChannel", "ontag": "Sfera.EksitonOpc.Южно-золоторевское 200.tags.Port2.Well310.Regs.StoredStatus.0"
+		    }, 'text': 'Скважина 310', 'icon': 'jstree-type_5',
+			'children': [  ] },                                                                                    
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgn&objname=Южно-золоторевское%20200&port=Port2&wellname=Well320',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 200.CurrentChannel", "ontag": "Sfera.EksitonOpc.Южно-золоторевское 200.tags.Port2.Well320.DI.0"
+		    }, 'text': 'Скважина 320', 'icon': 'jstree-type_5',
+			'children': [  ] },    
+			] }, 
+		{
+		    'data': {
+		        "link": '/Mnemo/AGZU?mnemo=AGZU1part&objname=Южно-золоторевское%20201&port=Port3&type=MassOzna201',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 201.CurrentChannel",
+		        "type": "AGZU",
+		    }, 'text': 'АГЗУ 201', 'icon': 'jstree-type_5',
+		    'children': [
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon2&objname=Южно-золоторевское%20201&port=Port2&wellname=Well201',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 201.CurrentChannel", "ontag": "Sfera.EksitonOpc.Южно-золоторевское 201.tags.Port2.Well201.Regs.StoredStatus.0"
+		    }, 'text': 'Скважина 201', 'icon': 'jstree-type_5',
+		    'children': []
+		},
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon2&objname=Южно-золоторевское%20201&port=Port2&wellname=Well263',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 201.CurrentChannel", "ontag": "Sfera.EksitonOpc.Южно-золоторевское 201.tags.Port2.Well263.Regs.StoredStatus.0"
+		    }, 'text': 'Скважина 263', 'icon': 'jstree-type_5',
+			'children': [  ] },                                                                                 
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon2&objname=Южно-золоторевское%20201&port=Port2&wellname=Well271',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 201.CurrentChannel", "ontag": "Sfera.EksitonOpc.Южно-золоторевское 201.tags.Port2.Well271.Regs.StoredStatus.0"
+		    }, 'text': 'Скважина 271', 'icon': 'jstree-type_5',
+			'children': [  ] },                                                                                 
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgn&objname=Южно-золоторевское%20201&port=Port2&wellname=Well272',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 201.CurrentChannel", "ontag": "Sfera.EksitonOpc.Южно-золоторевское 201.tags.Port2.Well272.DI.0"
+		    }, 'text': 'Скважина 272', 'icon': 'jstree-type_5',
+		    'children': []
+		},
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=shgn&objname=Южно-золоторевское%20201&port=Port2&wellname=Well295',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 201.CurrentChannel", "ontag": "Sfera.EksitonOpc.Южно-золоторевское 201.tags.Port2.Well295.DI.0"
+		    }, 'text': 'Скважина 295', 'icon': 'jstree-type_5',
+		    'children': []
+		},
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon2&objname=Южно-золоторевское%20201&port=Port2&wellname=Well318',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 201.CurrentChannel", "ontag": "Sfera.EksitonOpc.Южно-золоторевское 201.tags.Port2.Well318.Regs.StoredStatus.0"
+		    }, 'text': 'Скважина 318', 'icon': 'jstree-type_5',
+			'children': [  ] },                                                                                 
+		{
+		    'data': {
+		        "link": '/Mnemo/Well?mnemo=electon&objname=Южно-золоторевское%20201&port=Port2&wellname=Well321',
+		        "tag": "Sfera.EksitonOpc.Южно-золоторевское 201.CurrentChannel",
+		        "ontag": "Sfera.EksitonOpc.Южно-золоторевское 201.tags.Port2.Well321.Regs.Status.0"
+		    }, 'text': 'Скважина 321', 'icon': 'jstree-type_5',
+			'children': [  ] }, 
+			] }, ] }]
+                    }],
+                    "check_callback": true
+            },
+            "plugins": [ "state", "json_data"],
+        });
+
+            $('#container').bind("select_node.jstree", function (e, data) {
+                var obj = data.instance.get_node(data.selected[0]);
+                if (obj.data != null && obj.data.link != null) {
+                    LoadPageOn();
+                    loadLink(obj.data.link)
+                    //$('#tagInfo').load(obj.data.link);
+                }
+            });
+
+            $('#container').bind("ready.jstree", function (e, data) {
+                var $tree = $(this);
+                var trees=$($tree.jstree().get_json($tree, { flat: true }));
+                for(var i=0;i<trees.length;i++)
+                {
+                    var el = {};
+                    el.tag = trees[i].data.tag;
+                    el.ontag = trees[i].data.ontag;
+                    el.id = trees[i].id;
+                    el.type = trees[i].data.type;
+                    if(el.tag!=undefined)
+                    tags_tree.push(el);}  
+  
+                RequestTree(trees,OBJ_I);
+                setInterval(function () { RequestTree(trees, OBJ_I); }, 5000);
+
+
+            });
+
+
+       
+
+
+    function RequestTree(trees,id) {
+        var a = {}; for (var i = 0; i < tags_tree.length; i++) a[i] = tags_tree[i].tag;
+        for (var i = 0; i < tags_tree.length; i++) a[tags_tree.length+i] = tags_tree[i].ontag;
+        $.ajax({
+            type: "POST",
+            url: "/api/Opc/GetFullTagValues",
+            data: { Tags: a, TagsCount: tags_tree.length + tags_tree.length, Sender: id },
+            async: true,
+            success: s_RequestTree,
+            error: e_RequestTree
+        });
+    }
+    function s_RequestTree(data) {
+        TREE_VALS = new Array();
+        for (var i = 0; i < data.length; i++)
+            if (data[i].OpcVals != null)
+                TREE_VALS[data[i].Tag] = data[i].OpcVals.LastValue;
+
+        UpdateTree();
+    }
+    function e_RequestTree() {
+        ErrMessage("Не удалось получить значения OPC тегов.");
+    }
+    function UpdateTree() {
+        var tree=$("#container").jstree(true);
+            for (var i = 0; i < tags_tree.length; i++) {
+          
+                if (TREE_VALS[tags_tree[i].tag] > 0)
+                {
+                    if (tags_tree[i].type=="AGZU")
+                        tree.set_icon(tags_tree[i].id, 'jstree-ok');
+                        ///        el.set_icon = 'jstree-ok'; 
+                    else if (ParseToBool(TREE_VALS[tags_tree[i].ontag]))
+                        tree.set_icon(tags_tree[i].id, 'jstree-ok');
+                        ///        el.icon = 'jstree-ok';
+                    else 
+                        tree.set_icon(tags_tree[i].id, 'jstree-off');
+                    ///        el.icon = 'jstree-nodata';
+                }
+                else
+                    tree.set_icon(tags_tree[i].id, 'jstree-nodata');
+                ///    el.icon = 'jstree-nodata';
+
+            }
+          $('#container').jstree(true).redraw(true); //}
+      
+        //catch (err) { }
+    }
+
+    function loadLink(url) { 
+        $('#tagInfo').load(url);  
+    }
+
+</script>

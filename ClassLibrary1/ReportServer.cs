@@ -5,12 +5,10 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using NPOI;
 using Newtonsoft.Json;
 using WebSphere.Domain.Abstract;
 using WebSphere.Domain.Concrete;
 using System.Data;
-
 using NPOI.HSSF.UserModel;
 using NPOI.HSSF.Util;
 using NPOI.HPSF;
@@ -18,10 +16,43 @@ using NPOI.POIFS.FileSystem;
 using NPOI.SS.UserModel;
 using System.Text;
 using NPOI.SS.Util;
-using System.Data;
 
 namespace WebSphere.Reports
 {
+    public class Well
+    {
+        public int AgzuId;
+        public int WellId;
+        public string AgzuName;
+        public string WellName;
+        public int Psm;
+    }
+
+    public class AGZU
+    {
+        public string Name;
+        public List<Well> Wells;
+        public int st_id;
+        public int end_id;
+        public int Psm;
+        public int MinSec;
+        public int DayHour;
+        public int YearMont;
+        public int Tism;
+        public int QMfld;
+        public int QVfld;
+        public int Goil;
+        public int Qng;
+        public int water;
+        public int pofld;
+        public int Mfld;
+        public int Vfld;
+        public int Moil;
+        public int Vng;
+    }
+
+
+
     public class MySQLRow
     {
         public List<string> values = new List<string>();
@@ -123,81 +154,81 @@ namespace WebSphere.Reports
         private static HSSFWorkbook _workbook;
         private readonly EFDbContext _context = new EFDbContext();
         private static readonly Logging logger = new Logging();
-        private static readonly JSON Json = new JSON();
-        private static List<AlarmThreadManagerConfig> _cfgs= new List<AlarmThreadManagerConfig>();
+        // private static readonly JSON Json = new JSON();
+        private static IJSON _json = new JSON();
+        private static List<AlarmThreadManagerConfig> _cfgs = new List<AlarmThreadManagerConfig>();
+        private static List<EventThreadManagerConfig> _cfgsEv = new List<EventThreadManagerConfig>();
 
         private static readonly List<Report> reportList = new List<Report>
             {
-                 new Report{Id = 1,Name = "МГББ (Счетчики)"} ,
-                 new Report{Id = 2,Name = "МГББ (Тех.параметры)"} ,
-                 new Report{Id = 3,Name = "Площадка подогрева газа"} ,
-                 //new Report{Id = 4,Name = "Площадка замера газа"} ,
-                 new Report{Id = 5,Name = "Площадка конденсатосборников"},  
-                 new Report{Id = 6,Name = "Журнал событий и тревог"} 
+                 new Report{Id = 1,Name = "Журнал замеров АГЗУ"} ,
+                 new Report{Id = 2,Name = "Хронология пусков и остановок скважин"} ,
+                 new Report{Id = 3,Name = "Текущее состояние скважин"} ,
+                 new Report{Id = 4,Name = "Журнал состояния связи"} ,
+                 //new Report{Id = 5,Name = "Площадка конденсатосборников"},
+                 new Report{Id = 6,Name = "Журнал тревог"},
+                 new Report{Id = 7,Name = "Журнал событий "},
+                 new Report{Id = 8,Name = "Журнал действий пользователя "}
             };
-         
-        /*
-        public Report Rep1(string name, Dictionary<string, dynamic> parameters)
+
+
+        private List<Obj> _objects;
+        private List<Obj> _tags;
+
+        public class Obj
         {
-            var report = new Report();
-            var rez = new List<List<string>>();
-            try
-            {
-                using (context)
-                {
-                    var parameters1 = new object[parameters.Count];
-                    //{  
-                    //    new SqlParameter("@Id", "1") ,
-                    //    new SqlParameter("@Name", "NULL") 
-                    //};
-                    var par_string = "";
-                    var i = 0;
-                    foreach (var parameter in parameters)
-                    {
-                        if (par_string != "")
-                        {
-                            par_string = par_string + ',';
-                            i = i + 1;
-                        }
-                        parameters1[i] = new SqlParameter("@" + parameter.Key, "" + parameter.Value + "");
+            public int Id;
+            public int Type;
+            public int? Parent;
+            public string Name;
+            public string Prop;
 
-                        par_string = par_string + "@" + parameter.Key;
 
-                    }
-
-                    var sqlQuery = context.Database.SqlQuery<Report2>(name + " " + par_string, parameters1);
-                    var sqlQueryList = sqlQuery.ToList();
-                    for (i = 0; i < sqlQueryList.Count; i++)
-                    {
-                        var id = Convert.ToString(sqlQueryList[i].Id);
-                        var sd = Convert.ToString(sqlQueryList[i].SignalId);
-                        var dt = Convert.ToString(sqlQueryList[i].Datetime);
-                        rez.Add(new List<string> {id, sd, dt});
-
-                    }
-                    //rez.AddRange(sqlQueryList.Select(rezult => new List<string> { Convert.ToString(rezult.Id), Convert.ToString(rezult.SignalId), Convert.ToString(rezult.Datetime) }));
-
-                }
-
-                logger.Logged("Info", " Report loaded..." + name, "ReportServer", "Rep1");
-                report.Name = name;
-                report.Head = new List<string> {"ID", "signal", "dt"};
-                report.Rows = rez;
-            }
-            catch (Exception ex)
-            {
-                return report;
-            }
-            return report;
         }
-         */
+        public void LoadObjSign()
+        {
+            _objects = (from ti in _context.Objects
+                        where (ti.Type == 1 || ti.Type == 2 || ti.Type == 5 || ti.Type == 21) 
+                        select new Obj { Id = ti.Id, Name = ti.Name, Parent = ti.ParentId, Type = ti.Type, Prop = null }).ToList();
+
+            _tags = (from ti in _context.Objects
+                     join to in _context.Properties on ti.Id equals to.ObjectId
+                     where ti.Type == 2 && to.PropId == 0
+                     select new Obj { Id = ti.Id, Name = ti.Name, Parent = ti.ParentId, Type = ti.Type, Prop = to.Value }).ToList();
+
+
+        }
+        public List<int> GetChildTags(int? parID)
+        {
+            var rez = new List<int>();
+            if (parID == null) return rez;
+            var root = _objects.Where(c => c.Id == parID).Select(c => c).FirstOrDefault();
+            var childs = _objects.Where(c => c.Parent == parID && (c.Type == 21 || c.Type == 2 || c.Type == 5)).ToList();
+            foreach (var child in childs)
+            {
+                if (child.Id == 0) continue;
+                rez.AddRange(GetChildTags(child.Id));
+            }
+            if (root.Type == 2)
+            {
+                rez.Add(root.Id);
+            }
+            return rez;
+
+        } 
+
+
+
+     
         public string ProcFl(string value, int k)
         {
-            return string.IsNullOrEmpty(value) ? "" : Convert.ToString(Math.Round(Convert.ToDouble(value.Replace(".", ",")), k));
+            double N;
+            if (!Double.TryParse(value.Replace(".", ","), out N)) return value;
+            else return string.IsNullOrEmpty(value) ? "" : Convert.ToString(Math.Round(N, k));
         }
-
         public string GetTop1ValBetweenDatesById(int id, DateTime dt1, DateTime dt2)
         {
+
             return "select top 1 Value from SignalsAnalogs where TagId=" + id.ToString() + " and Datetime between '" +
                         dt1.ToString() + "' and '" + dt2.ToString() + "' order by Datetime desc";
         }
@@ -206,401 +237,9 @@ namespace WebSphere.Reports
             return "select top 1 Value from SignalsAnalogs where TagId=" + id.ToString() + " and Datetime <= '" +
                         dt1.ToString() + "'  order by Datetime desc";
         }
+ 
 
-        public Report PkReport(string name, Dictionary<string, dynamic> parameters)
-        {
-            var report = new Report();
-            var rez = new List<List<string>>();
-            var date = DateTime.Now;
-            foreach (var parameter in parameters)
-            {
-                if (parameter.Key == "StartDate")
-                    date = Convert.ToDateTime(Convert.ToString(parameter.Value));
-            }
-            try
-            {
-                var d = new DateTime(date.Year, date.Month, date.Day, 2, 0, 0);
-                for (var n = d; n <= d.AddDays(1); n = n.AddHours(2))
-                {
-                    var row = new List<string>();
-                    var n2 = n.AddHours(2);
-
-                    var q1 = "select top 1 Value from SignalsAnalogs where TagId=562 and Datetime between '" +
-                                n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                    var q2 = "select top 1 Value from SignalsAnalogs where TagId=563  and Datetime between '" +
-                                n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                    var q3 = "select top 1 Value from SignalsAnalogs where TagId=564  and Datetime between '" +
-                                n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                    var q4 = "select top 1 Value from SignalsAnalogs where TagId=565  and Datetime between '" +
-                                n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                    var ss1 = MyDB.sql_query_local(q1);
-                    var ss2 = MyDB.sql_query_local(q2);
-                    var ss3 = MyDB.sql_query_local(q3);
-                    var ss4 = MyDB.sql_query_local(q4);
-
-                    row.Add(n.TimeOfDay.ToString());
-                    row.Add((ss1.count_rows > 0) ? ProcFl(ss1.GetValue(0, 0), 2) : "");
-                    row.Add((ss2.count_rows > 0) ? ProcFl(ss2.GetValue(0, 0), 2) : "");
-                    row.Add((ss3.count_rows > 0) ? ProcFl(ss3.GetValue(0, 0), 2) : "");
-                    row.Add((ss4.count_rows > 0) ? ProcFl(ss4.GetValue(0, 0), 2) : "");
-                    rez.Add(row);
-                }
-
-                logger.Logged("Info", " Report loaded..." + name, "ReportServer", "Rep2");
-                report.Name = name;
-                report.Head = new List<string> { "Время чч:мм", "Давление Ек1 Мпа", "Давление Ек2 Мпа", "Уровень Ек1 мм", "Уровень Ек2 мм" };
-                report.Rows = rez;
-            }
-            catch (Exception ex)
-            {
-                return report;
-            }
-            return report;
-        }
-
-        public Report MgbbReport2(string name, Dictionary<string, dynamic> parameters)
-        {
-            var report = new Report();
-            var rez = new List<List<string>>();
-            var date = DateTime.Now;
-            foreach (var parameter in parameters)
-            {
-                if (parameter.Key == "StartDate")
-                    date = Convert.ToDateTime(Convert.ToString(parameter.Value));
-            }
-            try
-            {
-                using (_context)
-                {
-                    var d = new DateTime(date.Year, date.Month, date.Day, 2, 0, 0);
-                    for (DateTime n = d; n <= d.AddDays(1); n = n.AddHours(2))
-                    {
-                        DateTime n2 = n.AddHours(2);
-                        var row = new List<string>();
-
-
-                        var q1 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(632, n, n2)); //"AT01. З
-                        var q2 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(633, n, n2)); //"AT02. З
-                        var q3 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(661, n, n2)); //"TT01H. 
-                        var q4 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(636, n, n2)); //"PDIT01.
-                        var q5 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(637, n, n2)); //"PDIT101
-                        var q6 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(638, n, n2)); //"PIT01. 
-                        var q7 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(660, n, n2)); //"TT01. С
-                        var q8 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(648, n, n2)); //"PIT11. 
-                        var q9 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(667, n, n2)); //"TT07. П
-                        var q10 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(639, n, n2)); //"PIT02.С
-                        var q11 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(640, n, n2)); //"PIT03.С
-                        var q12 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(641, n, n2)); //"PIT04.С
-                        var q13 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(668, n, n2)); //"TT08. С
-                        var q14 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(642, n, n2)); //"PIT05. 
-                        var q15 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(662, n, n2)); //"TT02. С
-                        var q16 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(643, n, n2)); //"PIT06. 
-                        var q17 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(663, n, n2)); //"TT03. П
-                        var q18 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(644, n, n2)); //"PIT07. 
-                        var q19 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(664, n, n2)); //"TT04. С
-                        var q20 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(649, n, n2)); //"PIT12. 
-                        var q21 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(665, n, n2)); //"TT05.  
-                        var q22 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(645, n, n2)); //"PIT08. 
-                        var q23 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(646, n, n2)); //"PIT09. 
-                        var q24 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(647, n, n2)); //"PIT10. 
-                        var q25 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(666, n, n2)); //"TT06. Т 
-
-                        row.Add(n.TimeOfDay.ToString());
-                        var t = 1;
-                        var p = 2;
-                        var e = 3;
-
-
-                        row.Add((q1.count_rows > 0) ? ProcFl(q1.GetValue(0, 0), 2) : "");
-                        row.Add((q2.count_rows > 0) ? ProcFl(q2.GetValue(0, 0), 2) : "");
-                        row.Add((q3.count_rows > 0) ? ProcFl(q3.GetValue(0, 0), 2) : "");
-                        row.Add((q4.count_rows > 0) ? ProcFl(q4.GetValue(0, 0), 2) : "");
-                        row.Add((q5.count_rows > 0) ? ProcFl(q5.GetValue(0, 0), 2) : "");
-                        row.Add((q6.count_rows > 0) ? ProcFl(q6.GetValue(0, 0), 2) : "");
-                        row.Add((q7.count_rows > 0) ? ProcFl(q7.GetValue(0, 0), 2) : "");
-                        row.Add((q8.count_rows > 0) ? ProcFl(q8.GetValue(0, 0), 2) : "");
-                        row.Add((q9.count_rows > 0) ? ProcFl(q9.GetValue(0, 0), 2) : "");
-                        row.Add((q10.count_rows > 0) ? ProcFl(q10.GetValue(0, 0), 2) : "");
-                        row.Add((q11.count_rows > 0) ? ProcFl(q11.GetValue(0, 0), 2) : "");
-                        row.Add((q12.count_rows > 0) ? ProcFl(q12.GetValue(0, 0), 2) : "");
-                        row.Add((q13.count_rows > 0) ? ProcFl(q13.GetValue(0, 0), 2) : "");
-                        row.Add((q14.count_rows > 0) ? ProcFl(q14.GetValue(0, 0), 2) : "");
-                        row.Add((q15.count_rows > 0) ? ProcFl(q15.GetValue(0, 0), 2) : "");
-                        row.Add((q16.count_rows > 0) ? ProcFl(q16.GetValue(0, 0), 2) : "");
-                        row.Add((q17.count_rows > 0) ? ProcFl(q17.GetValue(0, 0), 2) : "");
-                        row.Add((q18.count_rows > 0) ? ProcFl(q18.GetValue(0, 0), 2) : "");
-                        row.Add((q19.count_rows > 0) ? ProcFl(q19.GetValue(0, 0), 2) : "");
-                        row.Add((q20.count_rows > 0) ? ProcFl(q20.GetValue(0, 0), 2) : "");
-                        row.Add((q21.count_rows > 0) ? ProcFl(q21.GetValue(0, 0), 2) : "");
-                        row.Add((q22.count_rows > 0) ? ProcFl(q22.GetValue(0, 0), 2) : "");
-                        row.Add((q23.count_rows > 0) ? ProcFl(q23.GetValue(0, 0), 2) : "");
-                        row.Add((q24.count_rows > 0) ? ProcFl(q24.GetValue(0, 0), 2) : "");
-                        row.Add((q25.count_rows > 0) ? ProcFl(q25.GetValue(0, 0), 2) : "");
-                        rez.Add(row);
-                    }
-                }
-                logger.Logged("Info", " Report loaded..." + name, "ReportServer", "Rep2");
-                report.Name = name;
-                report.Head = new List<string>
-                {
-                    "Время",
-                    "AT01. Загазованность в блок-боксе %",
-                    "AT02. Загазованность в блок-боксе %",
-                    "TT01H. Температура воздуха в блок-боксе °С",
-                    "PDIT01. Перепад давления на БФ-101 МПа",
-                    "PDIT101. Перепад давления на МГБ-101 МПа ",
-                    "PIT01. Сыр. газ. Давление  на входе в установку МПа",
-                    "TT01. Сыр. газ. Температура с на входе в установку °С",
-                    "PIT11. Подг. газ.Давление на выходе установки МПа",
-                    "TT07. Подг. газ.Температура на выходе установки °С",
-                    "PIT02.Сыр. газ. Давление в верхней секции БФ-101 МПа",
-                    "PIT03.Сыр. газ. Давление на выходе УРГ №1 МПа",
-                    "PIT04.Сыр. газ. Давление на выходе УРГ №1 МПа",
-                    "TT08. Сыр. газ.Температура после УРГ №1  ",
-                    "PIT05. Сыр. газ. Давление МПа",
-                    "TT02. Сыр. газ. Температура °С",
-                    "PIT06. Подг. газ. Давление  МПа",
-                    "TT03. Подг. газ.Температура  °С",
-                    "PIT07. Сыр. газ. Давление на входе МГБ-101 МПа ",
-                    "TT04. Сыр. газ. Температура на входе МГБ-101 °С",
-                    "PIT12. Подг. газ.Давление на выходе МГБ-101 МПа",
-                    "TT05.  Подг. газ.Температура на выходе МГБ-101 °С",
-                    "PIT08. Подг. газ.Давление  после УРГ №2 МПа",
-                    "PIT09. Подг. газ.Давление после УРГ №2 МПа ",
-                    "PIT10. Давление газа в пермеатном коллекторе МПа ",
-                    "TT06. Температура газа в пермеатном коллекторе °С"
-                };
-                report.Rows = rez;
-            }
-            catch (Exception ex)
-            {
-                return report;
-            }
-            return report;
-        }
-
-        public Report PgReport(string name, Dictionary<string, dynamic> parameters)
-        {
-            var report = new Report();
-            var rez = new List<List<string>>();
-            var date = DateTime.Now;
-            foreach (var parameter in parameters)
-            {
-                if (parameter.Key == "StartDate")
-                    date = Convert.ToDateTime(Convert.ToString(parameter.Value));
-            }
-            try
-            {
-                using (_context)
-                {
-                    var d = new DateTime(date.Year, date.Month, date.Day, 2, 0, 0);
-                    for (DateTime n = d; n <= d.AddDays(1); n = n.AddHours(2))
-                    {
-                        DateTime n2 = n.AddHours(2);
-                        var row = new List<string>();
-
-
-
-                        string q1 = "select top 1 Value from SignalsAnalogs where TagId= 624  and Datetime between '" +
-                      n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                        /*_tempOut = */
-                        string q2 = "select top 1 Value from SignalsAnalogs where TagId=625  and Datetime between '" +
-                          n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                        /*_level = ""*/
-                        string q3 = "select top 1 Value from SignalsAnalogs where TagId=626  and Datetime between '" +
-                                    n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                        /*_gasPress =*/
-                        string q4 = "select top 1 Value from SignalsAnalogs where TagId=627  and Datetime between '" +
-                                    n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                        /*_razr = "";*/
-                        string q5 = "select top 1 Value from SignalsAnalogs where TagId=628  and Datetime between '" +
-                                    n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                        /*_Pperepad =*/
-                        string q6 = "select top 1 Value from SignalsAnalogs where TagId=629  and Datetime between '" +
-                                    n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                        /*_flame = ""*/
-                        string q7 = "select top 1 Value from SignalsAnalogs where TagId=630  and Datetime between '" +
-                                    n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-
-
-                        var tempTN = MyDB.sql_query_local(q1);
-                        var tempOut = MyDB.sql_query_local(q2);
-                        var level = MyDB.sql_query_local(q3);
-                        var gasPress = MyDB.sql_query_local(q4);
-                        var razr = MyDB.sql_query_local(q5);
-                        var Pperepad = MyDB.sql_query_local(q6);
-                        var flame = MyDB.sql_query_local(q7);
-
-                        var t = 1;
-                        var p = 2;
-                        var e = 3;
-
-                        row.Add(n.TimeOfDay.ToString());
-                        row.Add((tempTN.count_rows > 0) ? ProcFl(tempTN.GetValue(0, 0), t) : "");
-                        row.Add((tempOut.count_rows > 0) ? ProcFl(tempOut.GetValue(0, 0), t) : "");
-                        row.Add((level.count_rows > 0) ? ProcFl(level.GetValue(0, 0), t) : "");
-                        row.Add((gasPress.count_rows > 0) ? ProcFl(gasPress.GetValue(0, 0), p) : "");
-                        row.Add((razr.count_rows > 0) ? ProcFl(razr.GetValue(0, 0), p) : "");
-                        row.Add((Pperepad.count_rows > 0) ? ProcFl(Pperepad.GetValue(0, 0), p) : "");
-                        row.Add((flame.count_rows > 0) ? ProcFl(flame.GetValue(0, 0), t) : "");
-
-                        rez.Add(row);
-                    }
-                }
-                logger.Logged("Info", " Report loaded..." + name, "ReportServer", "Rep2");
-                report.Name = name;
-                report.Head = new List<string>
-                {
-                    "Время чч:мм",
-                    "Температура теплоносителя С",
-                    "Температура подогреваемой среды С ",
-                    "Уровень теплоносителя  ",
-                    "Давление топливного газа мПа",
-                    "Разряжение ",
-                    "Перепад давления на фильтре мПа",
-                    "Датчик пламени %"
-                };
-                report.Rows = rez;
-            }
-            catch (Exception ex)
-            {
-                return report;
-            }
-            return report;
-        }
-
-        public Report MgbbReport(string name, Dictionary<string, dynamic> parameters)
-        {
-            var t = 1;
-            var p = 2;
-            var e = 3;
-            var report = new Report();
-            var rez = new List<List<string>>();
-            var date = DateTime.Now;
-            foreach (var parameter in parameters)
-            {
-                if (parameter.Key == "StartDate")
-                    date = Convert.ToDateTime(Convert.ToString(parameter.Value));
-            }
-            try
-            {
-                using (_context)
-                {
-                    var d = new DateTime(date.Year, date.Month, date.Day, 2, 0, 0);
-                    double sum_nrsg_day = 0;
-                    double sum_nrpg_day = 0;
-
-
-                    //string f1_sum = GetTop1ValBeforeDatesById(720,d);
-                    //string f1_sumN = GetTop1ValBeforeDatesById(721, d);
-                    //string f2_sum = GetTop1ValBeforeDatesById(717, d);
-                    //string f2_sumN = GetTop1ValBeforeDatesById(716, d);
-                    
-                   var f1_sum =Convert.ToDouble(ProcFl(MyDB.sql_query_local(GetTop1ValBeforeDatesById(720, d)).GetValue(0, 0), 1));
-                  var f1_sumN =Convert.ToDouble(ProcFl(MyDB.sql_query_local(GetTop1ValBeforeDatesById(721, d)).GetValue(0, 0), 1));
-                  var f2_sum =Convert.ToDouble(ProcFl(MyDB.sql_query_local(GetTop1ValBeforeDatesById(717, d)).GetValue(0, 0), 1));
-                  var f2_sumN = Convert.ToDouble(ProcFl(MyDB.sql_query_local(GetTop1ValBeforeDatesById(716, d)).GetValue(0, 0), 1));
-                    for (DateTime n = d; n <= d.AddDays(1); n = n.AddHours(2))
-                    {
-                        if (n>DateTime.Now) break;
-                        DateTime n2 = n.AddHours(2);
-                        var row = new List<string>();
-
-                        //string q3 = "select top 1 Value from SignalsAnalogs where TagId=718  and Datetime between '" +
-                        //            n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                        //string q4 = "select top 1 Value from SignalsAnalogs where TagId=719  and Datetime between '" +
-                        //            n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                          
-
-                        //string q9 = "select top 1 Value from SignalsAnalogs where TagId=714  and Datetime between '" +
-                        //            n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                        //string q10 = "select top 1 Value from SignalsAnalogs where TagId=715  and Datetime between '" +
-                        //             n.ToString() + "' and '" + n2.ToString() + "' order by Datetime desc";
-                  
-
-                         
-                        var pit05 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(642, n, n2)); 
-                        var tt02 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(662, n, n2));
-                         
-                        var pit06 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(643, n, n2)); 
-                        var tt03 = MyDB.sql_query_local(GetTop1ValBetweenDatesById(663, n, n2));
-
-                        //var rsg = MyDB.sql_query_local(q3);
-                        //var Nrsg = MyDB.sql_query_local(q4);
-                        var SUMrsg = MyDB.sql_query_local(GetTop1ValBetweenDatesById(720, n, n2));
-                        var SUMNrsg = MyDB.sql_query_local(GetTop1ValBetweenDatesById(721, n, n2)); 
-                        var _SUMrsg =((SUMrsg.count_rows > 0) ? Convert.ToDouble(ProcFl(SUMrsg.GetValue(0, 0), e)) :f1_sum);
-                        var _SUMNrsg=((SUMNrsg.count_rows > 0) ? Convert.ToDouble(ProcFl(SUMNrsg.GetValue(0, 0), e)) : f1_sumN);
-                        var _rsg = (_SUMrsg-f1_sum ); 
-                        var _Nrsg = (_SUMNrsg-f1_sumN );
-                        f1_sum = _SUMrsg;
-                         f1_sumN = _SUMNrsg;
-                        //var rpg = MyDB.sql_query_local(q9);
-                        //var Nrpg = MyDB.sql_query_local(q10);
-                        var SUMrpg = MyDB.sql_query_local(GetTop1ValBetweenDatesById(717, n, n2));
-                        var SUMNrpg = MyDB.sql_query_local(GetTop1ValBetweenDatesById(716, n, n2));
-                        var _SUMrpg=((SUMrpg.count_rows > 0) ? Convert.ToDouble(ProcFl(SUMrpg.GetValue(0, 0), e)) : f2_sum);
-                        var _SUMNrpg=((SUMNrpg.count_rows > 0) ? Convert.ToDouble(ProcFl(SUMNrpg.GetValue(0, 0), e)) : f2_sumN);  
-                        var _rpg=(_SUMrpg-f2_sum);
-                        var _Nrpg=(_SUMNrpg-f2_sumN );
-
-                        f2_sum = _SUMrpg;
-                        f2_sumN = _SUMNrpg;
-
-                        row.Add(n.TimeOfDay.ToString());
-
-                        row.Add((pit05.count_rows > 0) ? ProcFl(pit05.GetValue(0, 0), p) : "");
-                        row.Add((tt02.count_rows > 0) ? ProcFl(tt02.GetValue(0, 0), t) : "");
-                        row.Add(Convert.ToString(_rsg));
-                        row.Add(Convert.ToString(_Nrsg));
-                            sum_nrsg_day = sum_nrsg_day + _Nrsg;
-                        row.Add(Convert.ToString(sum_nrsg_day));  
-                        row.Add(Convert.ToString(_SUMrsg));
-                        row.Add(Convert.ToString(_SUMNrsg));
-
-                        row.Add((pit06.count_rows > 0) ? ProcFl(pit06.GetValue(0, 0), p) : "");
-                        row.Add((tt03.count_rows > 0) ? ProcFl(tt03.GetValue(0, 0), t) : "");
-                        row.Add(Convert.ToString(_rpg));
-                        row.Add(Convert.ToString(_Nrpg)); 
-                            sum_nrpg_day = sum_nrpg_day + _Nrpg;
-                        row.Add(Convert.ToString(sum_nrpg_day));
-                        row.Add(Convert.ToString(_SUMrpg));
-                        row.Add(Convert.ToString(_SUMNrpg));
-
-                        rez.Add(row);
-                    }
-                }
-                logger.Logged("Info", " Report loaded..." + name, "ReportServer", "Rep2");
-                report.Name = name;
-                report.Head = new List<string>
-                {
-                    "Время чч:мм",
-                    "Cыр. газ. Давление мПа",
-                    "Сыр. газ. Температура С",
-                    "Сыр. газ. Расход  2-часовой м3/ч ",
-                    "Сыр. газ. Расход  2-часовой нм3/ч ",
-                    "Сыр. газ. Нак. расход с начала суток нм3",
-                    "Сыр. газ. Суммарный расход  РУ м3/ч ",
-                    "Сыр. газ. Суммарный расход  НУ нм3/ч ",
-
-                    "Подг. газ. Давление мПа",
-                    "Подг. газ. Температура С",
-                    "Подг. газ. Расход 2-часовой м3/ч ",
-                    "Подг. газ. Расход 2-часовой нм3/ч ",
-                    "Подг. газ. Нак. расход с начала суток нм3",
-                    "Подг. газ. Суммарный расход РУ нм3/ч ",
-                    "Подг. газ. Суммарный расход НУ нм3/ч "
-                };
-                report.Rows = rez;
-            }
-            catch (Exception ex)
-            {
-                return report;
-            }
-            return report;
-        }
-
-        public List<Report> ReportList()
+         public List<Report> ReportList()
         {
             return reportList;
         }
@@ -611,166 +250,566 @@ namespace WebSphere.Reports
                 return firstOrDefault.Name;
             else return "Журнал не найден";
         }
-
-        public Report EventReport(string name, Dictionary<string, dynamic> parameters)
+        public Report AlarmReport(string name, Dictionary<string, dynamic> parameters)
         {
-
 
             var report = new Report();
             var rez = new List<List<string>>();
             var Sdate = DateTime.Now.AddDays(-1);
             var Edate = DateTime.Now;
+            int? AgzuId = null;
             foreach (var parameter in parameters)
             {
                 if (parameter.Key == "StartDate")
                     Sdate = Convert.ToDateTime(Convert.ToString(parameter.Value));
                 if (parameter.Key == "EndDate")
                     Edate = Convert.ToDateTime(Convert.ToString(parameter.Value));
-            }       
-            _cfgs.Clear();
-                    var taglist = (from ti in _context.Objects
-                        join to in _context.Properties on ti.Id equals to.ObjectId
-                        where ti.Type == 2 && to.PropId == 0
-                        select new {Id = ti.Id, Prop = to.Value});
-                    ;
-                    //var taglist = tags.ToList();
+                if (parameter.Key == "AgzuId")
+                    AgzuId = Convert.ToInt32(parameter.Value);
+            }
 
-                    //foreach (var tag in tags)
-            foreach (var tagjson in taglist)
+            LoadObjSign();
+            List<Obj> tags = new List<Obj>();
+            if (AgzuId != null)
             {
+                var tagsId = GetChildTags(AgzuId);
+                tags = _tags.Where(x => tagsId.Contains(x.Id)).ToList();
+            }
+            else
+                tags = _tags;
 
+            _cfgsEv.Clear();
+
+            var tagsIDList = new List<int>();
+            foreach (var tagjson in tags)
+            {
+                tagsIDList.Add(tagjson.Id);
                 dynamic alarm = JsonConvert.DeserializeObject(tagjson.Prop);
-
                 var tag = new TagId
                 {
                     TagName = Convert.ToString(alarm.Connection),
                     PollerId = Convert.ToInt32(alarm.Opc)
                 };
-
-                var tagId = Convert.ToInt32(tagjson.Id);
-                var enabled = Convert.ToBoolean(alarm.Alarm_IsPermit);
-                var active = Convert.ToBoolean(alarm.Alarm_IsPermit);
-
-                var hihiText = Convert.ToString(alarm.hihiText);
-                var hiText = Convert.ToString(alarm.hiText);
-                var normalText = Convert.ToString(alarm.normalText);
-                var loText = Convert.ToString(alarm.loText);
-                var loloText = Convert.ToString(alarm.loloText);
-
-
-                _cfgs.Add(new AlarmThreadManagerConfig
+                try
                 {
-                    Tag = tag,
-                    TagId = tagId,
-                    Enabled = enabled,
-                    Active = active,
+                    var tagId = Convert.ToInt32(tagjson.Id);
+                    var alarms = Convert.ToString(alarm.Alarms);
+                    if (alarms != null && alarms != "")
+                    {
+                        var alarm_ = new AlarmThreadManagerConfig();
+                        var _props = _json.Deserialize(alarms, alarm_.GetType());
+                        alarm_ = (AlarmThreadManagerConfig)_props;
+                        if (alarm_.Enabled)
+                        {
+                            alarm_.TagId = Convert.ToInt32(tagjson.Id);
+                            alarm_.Tag = tag;
 
-                    HihiText = hihiText,
-                    HiText = hiText,
-                    NormalText = normalText,
-                    LoText = loText,
-                    LoloText = loloText
-                });
+
+                            if (alarm_.HihiSeverity == null) alarm_.HihiSeverity = Double.MaxValue;
+                            if (alarm_.HiSeverity == null) alarm_.HiSeverity = Double.MaxValue;
+                            if (alarm_.LoSeverity == null) alarm_.LoSeverity = Double.MinValue;
+                            if (alarm_.LoloSeverity == null) alarm_.LoloSeverity = Double.MinValue;
+                            _cfgs.Add(alarm_);
+                        }
+
+                        logger.Logged("Info", "Конфигурация тревоги [" + tag.PollerId + "][" + tag.TagName + "] добавлена...", "AlarmThreadManager", "LoadAlarmsLastStates");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Logged("Err", "Неверная конфигурация тревоги [" + tag.PollerId + "][" + tag.TagName + "] : " +
+                        ex.Message, "AlarmThreadManager", "LoadAlarmsLastStates");
+                }
             }
+
+
             try
             {
 
                 using (_context)
                 {
                     var Salarms =
-                        _context.Alarms.Where(x => x.STime > Sdate && x.STime < Edate).OrderByDescending(x => x.STime);
+                        _context.Alarms.Where(x => x.STime > Sdate && x.STime < Edate && tagsIDList.Contains(x.TagId)).OrderByDescending(x => x.STime);
                     var Salarmslist = Salarms.ToList();
-             
 
-                        foreach (var salarm in Salarmslist)
+                    foreach (var salarm in Salarmslist)
+                    {
+                        var row = new List<string>();
+                        string endS = "", startS = "";
+
+                        var index = _cfgs.FindIndex(x => x.TagId == salarm.TagId);
+                        if (index != -1)
                         {
-                            var row = new List<string>();
-                            string endS = "", startS = "";
                             switch (salarm.SRes)
                             {
                                 case -2:
-                                    startS = _cfgs.Where(x => x.TagId == salarm.TagId).FirstOrDefault().LoloText;
+                                    startS = _cfgs.ElementAt(index).LoloText;
                                     break;
                                 case -1:
-                                    startS = _cfgs.Where(x => x.TagId == salarm.TagId).FirstOrDefault().LoText;
+                                    startS = _cfgs.ElementAt(index).LoText;
                                     break;
                                 case 0:
                                     startS =
-                                        _cfgs.Where(x => x.TagId == salarm.TagId).FirstOrDefault().NormalText;
+                                        _cfgs.ElementAt(index).NormalText;
                                     break;
                                 case 1:
-                                    startS = _cfgs.Where(x => x.TagId == salarm.TagId).FirstOrDefault().HiText;
+                                    startS = _cfgs.ElementAt(index).HiText;
                                     break;
                                 case 2:
-                                    startS = _cfgs.Where(x => x.TagId == salarm.TagId).FirstOrDefault().HihiText;
+                                    startS = _cfgs.ElementAt(index).HihiText;
                                     break;
                             }
                             switch (salarm.ERes)
                             {
                                 case -2:
-                                    endS = _cfgs.Where(x => x.TagId == salarm.TagId).FirstOrDefault().LoloText;
+                                    endS = _cfgs.ElementAt(index).LoloText;
                                     break;
                                 case -1:
-                                    endS = _cfgs.Where(x => x.TagId == salarm.TagId).FirstOrDefault().LoText;
+                                    endS = _cfgs.ElementAt(index).LoText;
                                     break;
                                 case 0:
-                                    endS = _cfgs.Where(x => x.TagId == salarm.TagId).FirstOrDefault().NormalText;
+                                    endS = _cfgs.ElementAt(index).NormalText;
                                     break;
                                 case 1:
-                                    endS = _cfgs.Where(x => x.TagId == salarm.TagId).FirstOrDefault().HiText;
+                                    endS = _cfgs.ElementAt(index).HiText;
                                     break;
                                 case 2:
-                                    endS = _cfgs.Where(x => x.TagId == salarm.TagId).FirstOrDefault().HihiText;
+                                    endS = _cfgs.ElementAt(index).HihiText;
                                     break;
                             }
 
-
-                            row.Add(startS);
-                            row.Add(salarm.STime.ToString());
-                            row.Add(endS);
-                                row.Add(salarm.ETime.ToString());
-                                  row.Add(salarm.AckTime.ToString());
-                        rez.Add(row); 
-
                         }
+                        else
+                        {
+                            endS = "Отсутствует  конфигурация"; startS = "Отсутствует  конфигурация";
+                        }
+                        row.Add(startS);
+                        row.Add(salarm.STime.ToString());
+                        row.Add(endS);
+                        row.Add(salarm.ETime.ToString());
+                        row.Add(salarm.AckTime.ToString());
+                        if (salarm.Ack > 1)
+                        {
+                            var user = _context.Objects.FirstOrDefault(x => (x.Id == salarm.Ack && x.Type == 9));
+                            if (user != null)
+                                row.Add(user.Name.ToString());
+                            else
+                                row.Add("");
+                        }
+                        rez.Add(row);
+
+                    }
                     logger.Logged("Info", " Report loaded..." + name, "ReportServer", "Rep2");
                     report.Name = name;
-                    report.Head = new List<string> { "Начало события", "Время начала", "Конец события", "Время конца", "Время квитирования" };
+                    report.Head = new List<string> { "Начало события", "Время начала", "Конец события", "Время конца", "Время квитирования", "Квитировал" };
                     report.Rows = rez;
-                    }             }
+                }
+            }
 
             catch (Exception ex)
             {
                 return report;
             }
             return report;
-                    }
-                
-            
-        
+        }
+        public Report EventReport(string name, Dictionary<string, dynamic> parameters)
+        {
+            var report = new Report();
+            var rez = new List<List<string>>();
+            var Sdate = DateTime.Now.AddDays(-1);
+            var Edate = DateTime.Now;
+            int? AgzuId = null;
+            foreach (var parameter in parameters)
+            {
+                if (parameter.Key == "StartDate")
+                    Sdate = Convert.ToDateTime(Convert.ToString(parameter.Value));
+                if (parameter.Key == "EndDate")
+                    Edate = Convert.ToDateTime(Convert.ToString(parameter.Value));
+                if (parameter.Key == "AgzuId")
+                    AgzuId = Convert.ToInt32(parameter.Value);
+            }
 
-        public
-            Report GetReport(int id, Dictionary<string, dynamic> parameters)
+            LoadObjSign();
+            List<Obj> tags = new List<Obj>();
+            if (AgzuId != null)
+            {
+                var tagsId = GetChildTags(AgzuId);
+                tags = _tags.Where(x => tagsId.Contains(x.Id)).ToList();
+            }
+            else
+                tags = _tags;
+
+            _cfgsEv.Clear();
+
+            var tagsIDList = new List<int>();
+            foreach (var tagjson in tags)
+            {
+                tagsIDList.Add(tagjson.Id);
+                dynamic alarm = JsonConvert.DeserializeObject(tagjson.Prop);
+                var tag = new TagId
+                {
+                    TagName = Convert.ToString(alarm.Connection),
+                    PollerId = Convert.ToInt32(alarm.Opc)
+                };
+                try
+                {
+                    var events = Convert.ToString(alarm.Events);
+                    if (events != null && events != "")
+                    {
+                        var event_ = new EventThreadManagerConfig();
+                        var _props = _json.Deserialize(events, event_.GetType());
+                        event_ = (EventThreadManagerConfig)_props;
+                        if (event_.Enabled)
+                        {
+                            event_.Tag = tag;
+                            event_.TagId = Convert.ToInt32(tagjson.Id);
+                            _cfgsEv.Add(event_);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Logged("Err", "add Event tag [" + tag.PollerId + "][" + tag.TagName + "] to alarmserver failed: " + ex.Message,
+                        "AlarmThreadManager", "LoadAlarmsLastStates");
+                }
+            }
+
+            try
+            {
+                using (_context)
+                {
+                    var Sevents =
+                        _context.Events.Where(x => x.Time > Sdate && x.Time < Edate && tagsIDList.Contains(x.TagId)).OrderByDescending(x => x.Time);
+                    var Seventslist = Sevents.ToList();
+
+
+                    foreach (var salarm in Seventslist)
+                    {
+                        var row = new List<string>();
+                        string endS = "", startS = "";
+
+
+                        var outEvent = new EventThreadManagerOut();
+
+                        outEvent.Id = salarm.Id;
+                        outEvent.TagId = salarm.TagId;
+                        outEvent.Time = salarm.Time;
+
+                        var tm = _cfgsEv.FirstOrDefault(x => x.TagId == salarm.TagId) ?? new EventThreadManagerConfig();
+
+                        if (tm.EventMessages != null)
+                        {
+                            foreach (var a in tm.EventMessages)
+                            {
+                                if (a.Value == salarm.Value)
+
+                                    outEvent.Message = a.Message;
+
+                            }
+                        }
+                        if (outEvent.Message == "" || outEvent.Message == null)
+                            outEvent.Message = "Сообщение отсутствует( Tag:" + salarm.TagId + ", Value:" + salarm.Value + ")";
+                        row.Add(outEvent.Time.ToString());
+                        row.Add(outEvent.Message);
+
+                        rez.Add(row);
+                    }
+                    logger.Logged("Info", " Report loaded..." + name, "ReportServer", "Rep2");
+                    report.Name = name;
+                    report.Head = new List<string> { "Время", "Cобытие" };
+                    report.Rows = rez;
+                }
+            }
+
+            catch (Exception ex)
+            {
+                return report;
+            }
+            return report;
+        }
+        public Report UserEventReport(string name, Dictionary<string, dynamic> parameters)
+        { 
+
+            var report = new Report();
+            var rez = new List<List<string>>();
+            var Sdate = DateTime.Now.AddDays(-1);
+            var Edate = DateTime.Now; 
+            foreach (var parameter in parameters)
+            {
+                if (parameter.Key == "StartDate")
+                    Sdate = Convert.ToDateTime(Convert.ToString(parameter.Value));
+                if (parameter.Key == "EndDate")
+                    Edate = Convert.ToDateTime(Convert.ToString(parameter.Value)); 
+            }
+            List<Obj> _users;
+            _users = (from ti in _context.Objects
+                      join to in _context.Properties on ti.Id equals to.ObjectId
+                      where ti.Type == 9 && to.PropId == 0
+                      select new Obj { Id = ti.Id, Name = ti.Name, Parent = ti.ParentId, Type = ti.Type, Prop = to.Value }).ToList();
+            List<Obj> tags = new List<Obj>(); 
+
+            _cfgsEv.Clear();
+
+            var tagsIDList = new List<int>();
+            foreach (var tagjson in _users)
+
+            {
+                tagsIDList.Add(tagjson.Id);
+                   var event_ = new EventThreadManagerConfig();
+                event_.TagId = tagjson.Id;
+                //чтоб поток не проверял события пользователеей
+                event_.Active = false;
+
+                event_.Enabled = true;
+                event_.EventMessages = new List<EventValMessage>();
+                event_.EventMessages.Add(new EventValMessage { Value = 0, Message = "Пользователь " + tagjson.Name + " вошел в систему" });
+                event_.EventMessages.Add(new EventValMessage { Value = 1, Message = "Пользователь " + tagjson.Name + " вышел из системы" });
+                event_.EventMessages.Add(new EventValMessage { Value = 2, Message = "Пользователь " + tagjson.Name + " квитировал тревогу" });
+                event_.EventMessages.Add(new EventValMessage { Value = 3, Message = "Пользователь " + tagjson.Name + " квитировал все тревоги" });
+                event_.EventMessages.Add(new EventValMessage { Value = 4, Message = "Пользователь " + tagjson.Name + " подал команду на открытие задвижки" });
+                event_.EventMessages.Add(new EventValMessage { Value = 5, Message = "Пользователь " + tagjson.Name + " подал команду на закрытие задвижки" });
+                event_.EventMessages.Add(new EventValMessage { Value = 6, Message = "Пользователь " + tagjson.Name + " Изменил заданное положение клапана" });
+                event_.EventMessages.Add(new EventValMessage { Value = 7, Message = "Пользователь " + tagjson.Name + " подал команду на изменение положения клапана" });
+                event_.EventMessages.Add(new EventValMessage { Value = 8, Message = "Пользователь " + tagjson.Name + " задал имитацию для тега" });
+                event_.EventMessages.Add(new EventValMessage { Value = 9, Message = "Пользователь " + tagjson.Name + " записал значение в тег" });
+                event_.EventMessages.Add(new EventValMessage { Value = 10, Message = "Пользователь " + tagjson.Name + "  добавил нового пользователя" });
+                event_.EventMessages.Add(new EventValMessage { Value = 11, Message = "Пользователь " + tagjson.Name + " подал команду на остановку задвижки" });
+                event_.EventMessages.Add(new EventValMessage { Value = 12, Message = "Пользователь " + tagjson.Name + " изменил значение уставки управления задвижками" });
+                event_.EventMessages.Add(new EventValMessage { Value = 0, Message = "Пользователь " + tagjson.Name + " вошел в систему" });
+                _cfgsEv.Add(event_);
+            }
+
+            try
+            {
+                using (_context)
+                {
+                    var Sevents =
+                        _context.Events.Where(x => x.Time > Sdate && x.Time < Edate && tagsIDList.Contains(x.TagId)).OrderByDescending(x => x.Time);
+                    var Seventslist = Sevents.ToList();
+
+
+                    foreach (var salarm in Seventslist)
+                    {
+                        var row = new List<string>();
+                        string endS = "", startS = "";
+
+
+                        var outEvent = new EventThreadManagerOut();
+
+                        outEvent.Id = salarm.Id;
+                        outEvent.TagId = salarm.TagId;
+                        outEvent.Time = salarm.Time;
+
+                        var tm = _cfgsEv.FirstOrDefault(x => x.TagId == salarm.TagId) ?? new EventThreadManagerConfig();
+
+                        if (tm.EventMessages != null)
+                        {
+                            foreach (var a in tm.EventMessages)
+                            {
+                                if (a.Value == salarm.Value)
+
+                                    outEvent.Message = a.Message;
+
+                            }
+                        }
+                        if (outEvent.Message == "" || outEvent.Message == null)
+                            outEvent.Message = "Сообщение отсутствует( Tag:" + salarm.TagId + ", Value:" + salarm.Value + ")";
+                        row.Add(outEvent.Time.ToString());
+                        row.Add(outEvent.Message);
+
+                        rez.Add(row);
+                    }
+                    logger.Logged("Info", " Report loaded..." + name, "ReportServer", "Rep2");
+                    report.Name = name;
+                    report.Head = new List<string> { "Время", "Cобытие" };
+                    report.Rows = rez;
+                }
+            }
+
+            catch (Exception ex)
+            {
+                return report;
+            }
+            return report;
+        }
+        public Report LinkReport(string name, Dictionary<string, dynamic> parameters)
+        {
+
+            var report = new Report();
+            var rez = new List<List<string>>();
+            var Sdate = DateTime.Now.AddDays(-1);
+            var Edate = DateTime.Now;
+            int? AgzuId = null;
+            foreach (var parameter in parameters)
+            {
+                if (parameter.Key == "StartDate")
+                    Sdate = Convert.ToDateTime(Convert.ToString(parameter.Value));
+                if (parameter.Key == "EndDate")
+                    Edate = Convert.ToDateTime(Convert.ToString(parameter.Value));
+                if (parameter.Key == "AgzuId")
+                    AgzuId = Convert.ToInt32(parameter.Value);
+            }
+
+            LoadObjSign();
+            List<Obj> tags = new List<Obj>();
+            if (AgzuId != null)
+            {
+                var tagsId = GetChildTags(AgzuId);
+                tags = _tags.Where(x => tagsId.Contains(x.Id) && x.Name == "ObjectLink").ToList();
+            }
+            else
+                tags = _tags.Where(x => x.Name == "ObjectLink").ToList();
+
+            _cfgsEv.Clear();
+
+            var tagsIDList = new List<int>();
+            foreach (var tagjson in tags)
+            {
+                tagsIDList.Add(tagjson.Id);
+                dynamic alarm = JsonConvert.DeserializeObject(tagjson.Prop);
+                var tag = new TagId
+                {
+                    TagName = Convert.ToString(alarm.Connection),
+                    PollerId = Convert.ToInt32(alarm.Opc)
+                };
+                try
+                {
+                    var tagId = Convert.ToInt32(tagjson.Id);
+                    var alarms = Convert.ToString(alarm.Alarms);
+                    if (alarms != null && alarms != "")
+                    {
+                        var alarm_ = new AlarmThreadManagerConfig();
+                        var _props = _json.Deserialize(alarms, alarm_.GetType());
+                        alarm_ = (AlarmThreadManagerConfig)_props;
+                        if (alarm_.Enabled)
+                        {
+                            alarm_.TagId = Convert.ToInt32(tagjson.Id);
+                            alarm_.Tag = tag;
+
+
+                            if (alarm_.HihiSeverity == null) alarm_.HihiSeverity = Double.MaxValue;
+                            if (alarm_.HiSeverity == null) alarm_.HiSeverity = Double.MaxValue;
+                            if (alarm_.LoSeverity == null) alarm_.LoSeverity = Double.MinValue;
+                            if (alarm_.LoloSeverity == null) alarm_.LoloSeverity = Double.MinValue;
+                            _cfgs.Add(alarm_);
+                        }
+
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.Logged("Err", "Неверная конфигурация тревоги [" + tag.PollerId + "][" + tag.TagName + "] : " +
+                        ex.Message, "AlarmThreadManager", "LoadAlarmsLastStates");
+                }
+            }
+
+
+            try
+            {
+
+                using (_context)
+                {
+                    var Salarms =
+                        _context.Alarms.Where(x => x.STime > Sdate && x.STime < Edate && tagsIDList.Contains(x.TagId)).OrderByDescending(x => x.STime);
+                    var Salarmslist = Salarms.ToList();
+
+                    foreach (var salarm in Salarmslist)
+                    {
+                        var row = new List<string>();
+                        string endS = "", startS = "";
+
+                        var index = _cfgs.FindIndex(x => x.TagId == salarm.TagId);
+                        if (index != -1)
+                        {
+                            switch (salarm.SRes)
+                            {
+                                case -2:
+                                    startS = _cfgs.ElementAt(index).LoloText;
+                                    break;
+                                case -1:
+                                    startS = _cfgs.ElementAt(index).LoText;
+                                    break;
+                                case 0:
+                                    startS =
+                                        _cfgs.ElementAt(index).NormalText;
+                                    break;
+                                case 1:
+                                    startS = _cfgs.ElementAt(index).HiText;
+                                    break;
+                                case 2:
+                                    startS = _cfgs.ElementAt(index).HihiText;
+                                    break;
+                            }
+                            switch (salarm.ERes)
+                            {
+                                case -2:
+                                    endS = _cfgs.ElementAt(index).LoloText;
+                                    break;
+                                case -1:
+                                    endS = _cfgs.ElementAt(index).LoText;
+                                    break;
+                                case 0:
+                                    endS = _cfgs.ElementAt(index).NormalText;
+                                    break;
+                                case 1:
+                                    endS = _cfgs.ElementAt(index).HiText;
+                                    break;
+                                case 2:
+                                    endS = _cfgs.ElementAt(index).HihiText;
+                                    break;
+                            }
+
+                        }
+                        else
+                        {
+                            endS = "Отсутствует  конфигурация"; startS = "Отсутствует  конфигурация";
+                        }
+                        row.Add(startS);
+                        row.Add(salarm.STime.ToString());
+                        row.Add(endS);
+                        row.Add(salarm.ETime.ToString());
+                        row.Add(salarm.AckTime.ToString());
+                        rez.Add(row);
+
+                    }
+                    logger.Logged("Info", " Report loaded..." + name, "ReportServer", "Rep2");
+                    report.Name = name;
+                    report.Head = new List<string> { "Начало события", "Время начала", "Конец события", "Время конца", "Время квитирования" };
+                    report.Rows = rez;
+                }
+            }
+
+            catch (Exception ex)
+            {
+                return report;
+            }
+            return report;
+        }
+      
+        public Report GetReport(int id, Dictionary<string, dynamic> parameters)
         {
             var report = new Report();
             switch (id)
             {
                 case 1:
-                    report = MgbbReport(ReportName(id), parameters);
+                   // report = ZamReport(ReportName(id), parameters);
                     break;
                 case 2:
-                    report = MgbbReport2(ReportName(id), parameters);
+                   // report = UserEvents(ReportName(id), parameters);
                     break;
                 case 3:
-                    report = PgReport(ReportName(id), parameters);
+                    //report = LastStateReport(ReportName(id), parameters);
                     break;
                 case 4:
-                   /// report = PuzgReport(ReportName(id), parameters);
+                    report = LinkReport(ReportName(id), parameters);
                     break;
-                case 5:
-                    report = PkReport(ReportName(id), parameters);
+                case 8:
+                    report = UserEventReport(ReportName(id), parameters);
                     break;
                 case 6:
+                    report = AlarmReport(ReportName(id), parameters);
+                    break;
+                case 7:
                     report = EventReport(ReportName(id), parameters);
                     break;
             }
@@ -779,7 +818,6 @@ namespace WebSphere.Reports
 
         public MemoryStream GetExcel(int id, Dictionary<string, dynamic> parameters, out string journal)
         {
-
             MemoryStream reportstStream = null;
             var report = GetReport(id, parameters);
             reportstStream = GetExcelReport(report, parameters);
@@ -790,13 +828,9 @@ namespace WebSphere.Reports
         private static void InitializeWorkbook()
         {
             _workbook = new HSSFWorkbook();
-
-            //create a entry of DocumentSummaryInformation
             DocumentSummaryInformation dsi = PropertySetFactory.CreateDocumentSummaryInformation();
             dsi.Company = "NPOI Team";
             _workbook.DocumentSummaryInformation = dsi;
-
-            //create a entry of SummaryInformation
             SummaryInformation si = PropertySetFactory.CreateSummaryInformation();
             si.Subject = "NPOI SDK Example";
             _workbook.SummaryInformation = si;
@@ -806,8 +840,9 @@ namespace WebSphere.Reports
         {
             InitializeWorkbook();
             var _date = DateTime.Now;
+            string op1 = "";
+            string op2 = "";
             #region
-
             ICellStyle journal_name_style = _workbook.CreateCellStyle();
             journal_name_style.Alignment = HorizontalAlignment.Center;
             //create a font style
@@ -874,20 +909,17 @@ namespace WebSphere.Reports
             zerorow.BorderBottom = BorderStyle.Thin;
 
             #endregion
+
             foreach (var parameter in parameters)
             {
                 if (parameter.Key == "StartDate")
-                {
                     _date = Convert.ToDateTime(Convert.ToString(parameter.Value));
-                }
             }
+
             ICell cell;
             IRow row;
-            string head = "Суточная отчетность ГСУ Метели";
-            //end of styles
-            var col = 0;
-            var rown = 0;
-            var icell = 0;
+            string head = "Суточная отчетность";
+            var col = 0; var rown = 0; var icell = 0;
             col = report.Head.Count - 1;
             rown = 0;
             HSSFSheet sheet = (HSSFSheet)_workbook.CreateSheet(head);
@@ -934,7 +966,8 @@ namespace WebSphere.Reports
             ((HSSFSheet)sheet).SetEnclosedBorderOfRegion(region, NPOI.SS.UserModel.BorderStyle.Thin, 8);
             rown++;
 
-            //Create new Excel Sheet 
+            row = sheet.CreateRow(rown);
+            rown++;
             IRow headerRow = sheet.CreateRow(rown);
             rown++;
 
@@ -943,8 +976,7 @@ namespace WebSphere.Reports
 
             for (var j = 0; j < report.Head.Count; j++) headerRow.GetCell(j).CellStyle = header;
             //замопозить область
-            //sheet.CreateFreezePane(0, rown); 
-            //filters
+            //sheet.CreateFreezePane(0, rown);  
             //sheet.SetAutoFilter(new CellRangeAddress(rown - 1, report.Head.Count + rown, 0, col));
             foreach (List<string> t in report.Rows)
             {
@@ -957,26 +989,11 @@ namespace WebSphere.Reports
                 rown++;
             }
 
-            rown++;
-            rown++;
-
-            row = sheet.CreateRow(rown);
-            row.CreateCell(0).SetCellValue("Смену сдал:");
-            row.CreateCell(Convert.ToInt32(col / 2)).SetCellValue("Смену принял:");
-            rown++;
-            row = sheet.CreateRow(rown);
-            row.CreateCell(0).SetCellValue("Ф.И.О:");
-            row.CreateCell(Convert.ToInt32(col / 2)).SetCellValue("Ф.И.О:");
-            rown++;
-
-
             for (int i = 0; i < col + 1; i++)
             {
                 sheet.AutoSizeColumn(i);
                 sheet.SetColumnWidth(i, sheet.GetColumnWidth(i) + 3 * 512);
             }
-
-
 
             if (_workbook != null)
             {
@@ -990,7 +1007,51 @@ namespace WebSphere.Reports
 
 
         }
+
+
+        public List<Domain.Abstract.AGZUObject> ObjectList()
+        {
+
+            var objList = new List<Domain.Abstract.AGZUObject>();
+
+            objList = (from ti in _context.Objects
+                       where (ti.Type == 5)
+                        && !ti.Name.Contains("Setting") && !ti.Name.Contains("cfg") && !ti.Name.Contains("Rez")
+                       select new Domain.Abstract.AGZUObject { Id = ti.Id, Name = ti.Name, ParentId = ti.ParentId }).ToList();
+
+            return objList;
+        }
+        public List<Domain.Abstract.AGZUObject> ChildList(int parentId)
+        {
+
+            var q = "             DECLARE @ID INT = " + parentId + "                                                          ";
+            q = q + "                                                                                                        ";
+            q = q + " ; WITH ParentChildCTE                                                                                  ";
+            q = q + " AS(                                                                                                    ";
+            q = q + "     SELECT ID, ParentId, Type, Name                                                                    ";
+            q = q + "     FROM Objects                                                                                       ";
+            q = q + "     WHERE Id = @ID                                                                                     ";
+            q = q + "                                                                                                        ";
+            q = q + "     UNION ALL                                                                                          ";
+            q = q + "                                                                                                        ";
+            q = q + "     SELECT T1.ID, T1.ParentId, T1.Type, T1.Name                                                        ";
+            q = q + "     FROM Objects T1                                                                                    ";
+            q = q + "     INNER JOIN ParentChildCTE T ON T.ID = T1.ParentID                                                  ";
+            q = q + "     WHERE T1.ParentID IS NOT NULL                                                                      ";
+            q = q + "     )                                                                                                  ";
+            q = q + " SELECT distinct Id,ParentId,REPLACE(Name,'Well','Скважина ')                                                                                      ";
+            q = q + " FROM ParentChildCTE where   name not like 'Well%]' and name like 'Well%' and name not like 'WellsFlags'";
+
+
+            var objList = new List<Domain.Abstract.AGZUObject>(); var rezult = MyDB.sql_query_local(q);
+            foreach (var _row in rezult.rows)
+                objList.Add(new AGZUObject { Id = Convert.ToInt32(_row.values[0]), Name = _row.values[2], ParentId = Convert.ToInt32(_row.values[1]) });
+
+            return objList;
+        }
     }
-
-
 }
+
+
+
+

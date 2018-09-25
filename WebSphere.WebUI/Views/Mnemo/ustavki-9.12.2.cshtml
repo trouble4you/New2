@@ -1,0 +1,85 @@
+﻿@{
+    ViewBag.Title = "Web Telemetry System «WebSphere»"; 
+}   <!-- Scripts -->
+@model WebSphere.WebUI.Models.Well
+<link href="~/Content/_CSS/Reports/zerozam.css" rel="stylesheet" />
+<link href="~/Content/_CSS/Mnemo/MnemoSingle.css" rel="stylesheet" />
+<script type="text/javascript" src="~/Scripts/_JS/common/OpcReadWrite.js"></script>
+<script type="text/javascript" src="~/Scripts/_JS/AdditionalFunctions.js"></script>
+<script type="text/javascript" src="~/Scripts/_JS/common/MyTime.js"></script>
+<script type="text/javascript" src="~/Scripts/_JS/main.js"></script>
+<script type="text/javascript" src="~/Scripts/snap/snap.svg.js"></script>
+<script type="text/javascript" src="~/Scripts/SVG/Main.js"></script>
+<script type="text/javascript" src="~/Scripts/SVG/Tag_types_update.js"></script> 
+
+    <object id='svg' data="/Content/_svg/ustavki9122.svg" type="image/svg+xml" ></object> 
+
+<script type="text/javascript">
+
+
+    var modelId='@Model.Id';
+	var modelname='@Model.Name';
+	var modelfullname='@Model.FullName';
+    function openLink(link) {
+        window.open(link.replace('idModel', modelId), '_self');
+    }
+
+    function updateUst(id) {
+        var options = {};
+        options.tag = id.getAttribute('data-tag').replace("XObject", modelfullname).replace("ZObjectName", name);
+        options.func="UstavkiWell";
+        //alert(options.tag); 
+        var deferredObject = $.Deferred();
+        var defaults = {
+            func: "OpcTagWriteValue", //alert, boolean,input 
+            type: "forced", //alert, boolean,input
+            tag: "default", //alert, boolean,input
+            value: 'default', //modal-sm, modal-lg
+            BitNo: null, //modal-sm, modal-lg
+            Len: null, //modal-sm, modal-lg
+            messageText: 'Изменить уставку?',
+            tagid:2,
+            opcid:2
+        }
+        $.extend(defaults, options);
+
+        if (modelfullname != null && modelfullname != undefined){
+            defaults.tag = defaults.tag.replace("XObject", modelfullname);
+            defaults.messageText = defaults.messageText.replace("XObject", modelfullname);
+            defaults.value = defaults.value.replace("XObject", modelfullname);
+        }
+        if (modelname != null && modelname != undefined) {
+            defaults.tag = defaults.tag.replace("ZObjectName", modelname);
+            defaults.messageText = defaults.messageText.replace("ZObjectName", modelname);
+            defaults.value = defaults.value.replace("ZObjectName", modelname);
+        }
+
+        $('BODY').append(
+            '<div id="ezAlerts" style="position:fixed;top: 150px;right: 0;bottom: 0;left: 0;">' +
+            '<div class="modal-dialog" class="modal-sm">' +
+            '<div class="modal-content">' +
+            '<div id="ezAlerts-body" class="modal-body">' +
+            '<div id="ezAlerts-message" ></div>' +
+            '</div>' +
+            '<div id="ezAlerts-footer" class="modal-footer">' +
+            '</div>' +
+            '</div>' +
+            '</div>' +
+            '</div>'
+        );
+        // alert(2);
+             
+        $('#ezAlerts-message').html(defaults.messageText + '<br /><br /><div class="form-group"><input type="text" class="form-control" id="prompt" /></div>');
+        btnhtml = "<button id='ezok-btn' class='btn btn-primary'>Ok</button><button id='ezclose-btn' class='btn btn-default' onclick='CloseBSAlert()'>Отмена</button>";
+        $('#ezAlerts-footer').html(btnhtml);
+        //defaults.opcid: '" + opcid + "', defaults.tagid
+        document.getElementById("ezok-btn").setAttribute("onclick", "OpcModalWrite( '" + defaults.func + "', '" + defaults.tag + "','" + defaults.tagid + "','" + defaults.opcid + "','" + defaults.BitNo + "','" + defaults.Len + "');CloseBSAlert();");
+           
+    }
+
+    function upd(){
+        LoadPageOff();
+	InitMnemoSVG('@Model.Name', '@Model.FullName');}
+    // загрузка svg - файла
+    window.addEventListener("load", function () { InitMnemoSVG('@Model.Name', '@Model.FullName',); });
+</script>

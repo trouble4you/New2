@@ -23,7 +23,18 @@ namespace WebSphere.ClientOPC
 
         public override bool IsConnected()
         {
-            return server.IsConnected;
+            //return server.IsConnected;
+            try
+            {
+                var filters = new Opc.Da.BrowseFilters { BrowseFilter = Opc.Da.browseFilter.all };
+                Opc.Da.BrowsePosition pos = null;
+                var elements = server.Browse(null, filters, out pos);
+                if (elements != null) return true;
+                else return true;
+            }
+            catch (Opc.ResultIDException ex)
+            {
+                logger.Logged("Error", "Не удалось проверить подключение кЩОРС #" + PollerId + ": " + ex.Message, "", ""); return false; }
         }
 
         /// <summary>
@@ -34,14 +45,19 @@ namespace WebSphere.ClientOPC
             LastPoll = DateTime.Now;
             for (int i = 0; i < items.GetLength(0); i++)
             {
-                var tag = new TagId { TagName = items[i].ItemName, PollerId = PollerId };
+                var tag = new TagId();
+                //Найдем тег с списке 
+                tag = TagListBackup.FirstOrDefault(x => x.TagName == items[i].ItemName) ??
+                      new TagId { TagName = items[i].ItemName, PollerId = PollerId };
 
                 if (items[i].Quality.GetCode() >= 192)
                 {
-                    string value = items[i].Value.ToString();
-
-                    OnUpdate(tag, value, items[i].Timestamp, items[i].Quality.GetCode());
+                    logger.Logged("Info", "обновился тег ОРС #" + PollerId + ": " + items[i].ItemName + '/' + items[i].Value + '/' + items[i].Timestamp + '/', "", "");
+                    OnUpdate(tag, items[i].Value, items[i].Timestamp, items[i].Quality.GetCode());
                 }
+                    // string value = .ToString();
+
+                
                 // проверка на то, что качество у нас Good или его производные
                 //    if (items[i].Quality.GetCode() >= 192)
                 //    {
@@ -102,40 +118,31 @@ namespace WebSphere.ClientOPC
         public override void AddTags(List<TagId> taglist)
         {
             TagListBackup = taglist;
-            var subList = new List<Opc.Da.Item>();
-            foreach (var tag in taglist)
-            {
-
-                if (_tags.Exists(d => d.ItemName == tag.TagName))
-                {   // TagListBackup.Add(tag);
-                    subList.Add(new Opc.Da.Item { ItemName = tag.TagName });
-                    logger.Logged("Info", "#" + PollerId + ": добавляем тег '" + tag.TagName + "' в подписку", "OpcDaPoller", "AddTags");
-                }
-                else
-                {
-                    logger.Logged("Error", "#" + PollerId + ": тег '" + tag.TagName + "' не обнаружен на сервере", "OpcUaPoller", "AddTags");
-                }
-            }
             if (!Activated) return;
+            var subList = new List<Opc.Da.Item>();
+            if (!SubAll)
+                foreach (var tag in taglist)
+                {
+
+                    if (_tags.Exists(d => d.ItemName == tag.TagName))
+                    {   // TagListBackup.Add(tag);
+                        subList.Add(new Opc.Da.Item { ItemName = tag.TagName });
+                        logger.Logged("Info", "#" + PollerId + ": добавляем тег '" + tag.TagName + "' в подписку", "OpcDaPoller", "AddTags");
+                    }
+                    else
+                    {
+                        logger.Logged("Error", "#" + PollerId + ": тег '" + tag.TagName + "' не обнаружен на сервере", "OpcUaPoller", "AddTags");
+                    }
+                }
+            else
+            {
+                logger.Logged("Info", "#" + PollerId + ": добавляем все теги сервера в подписку", "OpcDaPoller", "AddTags");
+                subList = _tags;
+            }
             try
             {
                 var groupState = new Opc.Da.SubscriptionState { Name = "Group", Active = true };
                 var @group = (Opc.Da.Subscription)server.CreateSubscription(groupState);
-
-
-
-
-                /* 
-                int tagCounter = 0;
-                var items = new Opc.Da.Item[taglist.Count()];
-                foreach (TagId tag in taglist)
-                {
-                    var item = new Opc.Da.Item {ItemName = tag.TagName};
-                    items[tagCounter] = item;
-                    tagCounter++;
-                }*/
-
-
                 @group.AddItems(subList.ToArray());
                 @group.DataChanged += new Opc.Da.DataChangedEventHandler(OnNotification);
                 logger.Logged("Info", "Добавлено {" + subList.Count() + "}  тегов для контроля с OPC DA сервера #{" + PollerId + "}", "", "");
@@ -165,29 +172,41 @@ namespace WebSphere.ClientOPC
             try
             {
                 PollerId = newPollerId;
+                logger.Logged("Error", " PollerId = newPollerId;", "", "");
                 url = new Opc.URL(connectionString);
+                logger.Logged("Error", "  url = new Opc.URL(connectionString);", "", "");
                 server = null;
+                logger.Logged("Error", " server = null;", "", "");
                 var fact = new OpcCom.Factory();
+                logger.Logged("Error", " PollerId = newPollerId;", "", "");
                 server = new Opc.Da.Server(fact, null);
+                logger.Logged("Error", " var fact = new OpcCom.Factory();", "", "");
                 server.Connect(url, new Opc.ConnectData(new System.Net.NetworkCredential()));
+                logger.Logged("Error", " server.Connect(url, new Opc.ConnectData(new System.Net.NetworkCredential()));", "", "");
                 server.ServerShutdown += Shutdown;
+                logger.Logged("Error", " server.ServerShutdown += Shutdown;", "", "");
                 _tags = new List<Opc.Da.Item>();
+                logger.Logged("Error", " _tags = new List<Opc.Da.Item>();", "", "");
                 Browse();
+                logger.Logged("Error", "Browse();;", "", "");
 
                 _groupWriteState = new Opc.Da.SubscriptionState();
                 _groupWriteState.Name = "GroupWrite";
                 _groupWriteState.Active = false;
+                logger.Logged("Error", "_groupWriteState();;", "", "");
 
-                groupWrite = (Opc.Da.Subscription)server.CreateSubscription(_groupWriteState); 
+                groupWrite = (Opc.Da.Subscription)server.CreateSubscription(_groupWriteState);
                 Activated = true;
+                logger.Logged("Error", "Activated", "", "");
                 logger.Logged("Info", "Состояние сервера: " + server.GetStatus().StatusInfo, "", "");
                 result = true;
+                logger.Logged("Error", "result " + result, "", "");
             }
             catch (Exception ex)
             {
                 logger.Logged("Error", "Не удалось подключиться к OPC DA серверу " + connectionString + ": " + ex.Message, "", "");
-                logger.Logged("Warn", "Повторная попытка через 5 секунд...", "", "");
-                Thread.Sleep(5000);
+                // logger.Logged("Warn", "Повторная попытка через 5 секунд...", "", "");
+                //Thread.Sleep(5000);
             }
 
             return result;
@@ -215,26 +234,23 @@ namespace WebSphere.ClientOPC
         }
         public override bool WriteTag(TagId tag, string value)
         {
-            groupWrite.RemoveItems(groupWrite.Items);
-            List<Item> writeList = new List<Item>();
-            List<ItemValue> valueList = new List<ItemValue>();
-
-            Item itemToWrite = new Item();
-            itemToWrite.ItemName = tag.TagName;
-            ItemValue itemValue = new ItemValue(itemToWrite);
-            itemValue.Value = value;
-
-            writeList.Add(itemToWrite);
-            valueList.Add(itemValue);
-            //IMPORTANT:
-            //#1: assign the item to the group so the items gets a ServerHandle
-            groupWrite.AddItems(writeList.ToArray());
-            // #2: assign the server handle to the ItemValue
-            for (int i = 0; i < valueList.Count; i++)
-                valueList[i].ServerHandle = groupWrite.Items[i].ServerHandle;
-            // #3: write
             try
             {
+                groupWrite.RemoveItems(groupWrite.Items);
+                List<Item> writeList = new List<Item>();
+                List<ItemValue> valueList = new List<ItemValue>();
+
+                Item itemToWrite = new Item();
+                itemToWrite.ItemName = tag.TagName;
+                ItemValue itemValue = new ItemValue(itemToWrite);
+                itemValue.Value = value;
+
+                writeList.Add(itemToWrite);
+                valueList.Add(itemValue);
+                groupWrite.AddItems(writeList.ToArray());
+                for (int i = 0; i < valueList.Count; i++)
+                    valueList[i].ServerHandle = groupWrite.Items[i].ServerHandle;
+
                 groupWrite.Write(valueList.ToArray());
                 return true;
             }

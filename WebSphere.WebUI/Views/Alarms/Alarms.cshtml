@@ -2,9 +2,9 @@
  
 
 <!-- Styles --> 
-<link rel="stylesheet" type="text/css" href="/Content/_CSS/jqueryUI Theme/jquery-ui-1.10.4.custom.min.css" />
-<link rel="stylesheet" type="text/css" href="/Content/_CSS/Reports/zerozam.css" />
+<link rel="stylesheet" type="text/css" href="/Content/_CSS/jqueryUI Theme/jquery-ui-1.10.4.custom.min.css" /> 
 <link rel="stylesheet" type="text/css" href="/Content/_CSS/datetimepicker/jquery.datetimepicker.css" /> 
+<link rel="stylesheet" type="text/css" href="/Content/_CSS/Reports/Reports.css" />
 <link rel="stylesheet" type='text/css' href='/Content/_CSS/main.css' />
 <link rel="stylesheet" type='text/css' href='/Content/_CSS/jqueryUI Theme/ui.jqgrid.css' /> 
 <link rel="stylesheet" type='text/css' href='/Content/_CSS/Reports/zerozam.css' />
@@ -17,24 +17,48 @@
 <script type="text/javascript" src="/Scripts/_JS/main.js"></script>
 <script type="text/javascript" src="/Scripts/_JS/jqGrid/jquery.jqGrid.min.js"></script> 
 <script type="text/javascript" src="/Scripts/_JS/AdditionalFunctions.js"></script> 
-
-   
-<div id='alarms_div_head' class='div_lastmess_head' style=" position: absolute; z-index: 0; right: 0px; min-width: 887px; left: 0px; top: 203px; bottom: 10px;">
-    Журнал тревог
-    <input type="button" value="Квитировать все" class=" kvit_it_all" onclick="kvitirovanie_all()" />
+<div id="journal" class="container " style="width: 100%;">
+    
+    
+    
+    <div class="row">
+        <div class="col-md-9">
+            <h4>Журнал тревог</h4> 
+        </div> 
+        <div class="col-md-2">
+            <h4> 
+                <select class="form-control" id="agzu" name="agzu"> 
+                    <option value="0">Все</option>
+                        <option value="9501">УЗ №1</option>
+                        <option value="9631">УЗ №12</option>
+                        <option value="9737">Счетчики</option>
+                </select>
+                </h4>
 </div>
-<div id='mess_div' style=" position: absolute; z-index: 0; right: 0px; min-width: 887px; left: 2px; top: 233px; bottom: 10px;">
-    <table style='margin-bottom:0px;'   id='lastalarms_table'></table>
+        <div class="col-md-1">
+            <h4>
+                <input type="button" class="btn btn-default" id="obnov" style=" width 100%;" value="Обновить" onclick="getlastalarmsView()" />
+            </h4>
+        </div>
+        <div class="col-md-1">
+            <h4>
+                <input type="button" class="btn btn-default" style="width 100%;" value="Квитировать все" onclick="kvitirovanie_all()" />
+            </h4> 
 </div>
-  
+    </div>
+    <div id='mess_divView' class="row div_events">
+        <table style='margin-bottom:0px;' id='lastalarms_table_view'></table>
+    </div>
+</div>
+    
 
 <script type="text/javascript">
     $(function () {
 
-        $('#lastalarms_table').jqGrid({
+        $('#lastalarms_table_view').jqGrid({
             caption: "",
             datatype: 'local',
-            colNames: ['id', 'tag', 'ack', 'active', 'Начало события', 'Время начала', 'Конец события', 'Тревога', 'Время окончания', 'Время квитирования',"Длительность"],
+            colNames: ['id', 'tag', 'ack', 'active', 'Начало события', 'Время начала', 'Конец события', 'Тревога', 'Время окончания', 'Квитировал','Время квитирования',"Длительность"],
             colModel: [{ name: 'Id', index: 'Id', hidden: true },
                 { name: 'Tag', index: 'Tag', hidden: true },
                 { name: 'Ack', index: 'Ack', hidden: true },
@@ -48,7 +72,8 @@
                 { name: 'Message', index: 'Message', width: '150%', sortable: false, classes: 'lambda_zam_col', hidden: true },
                 {name: 'EndTime', index: 'EndTime', width: '40%', align: 'center', sortable: true, sorttype: 'date',
                     formatter: "date", formatoptions: { srcformat: "Y-m-d H:i:s", newformat: "d.m.Y  H:i:s" }, classes: 'lambda_zam_col',
-                },
+                },{ name: 'AckedBy', index: 'AckedBy', width: '50%', sortable: false, classes: 'lambda_zam_col' },
+                
                 {name: 'AckTime', index: 'AckTime', width: '40%', align: 'center', sortable: true, sorttype: 'date', classes: 'lambda_zam_col',
                     formatter: "date", formatoptions: { srcformat: "Y-m-d H:i:s", newformat: "d.m.Y  H:i:s" },
                 },
@@ -76,29 +101,29 @@
                //
                // else if (rd.Ack == true && rd.Active == true) { return { "class": "zam_kvit_activ" }; }
                // else { return { "class": "zam_nekvit_neactiv" }; }
-                if ((rd.StartReason == -1 || rd.StartReason == 1) && rd.Ack == false && (rd.Active == true || rd.Active == 1)) { return { "class": "alarm_pred" }; }
-                else if ((rd.StartReason == -2 || rd.StartReason == 2) && rd.Ack == false && (rd.Active == true || rd.Active == 1)) { return { "class": "alarm_krit" }; }
+                if ((rd.StartReason == -1 || rd.StartReason == 1) && rd.Ack == 0 && (rd.Active == true || rd.Active == 1)) { return { "class": "alarm_pred" }; }
+                else if ((rd.StartReason == -2 || rd.StartReason == 2) && rd.Ack == 0 && (rd.Active == true || rd.Active == 1)) { return { "class": "alarm_krit" }; }
                      
-                else if (rd.Ack == true  && (rd.Active == true || rd.Active == 1)) { return { "class": "zam_kvit_activ" }; }
+                else if (rd.Ack >0  && (rd.Active == true || rd.Active == 1)) { return { "class": "zam_kvit_activ" }; }
                 else { return { "class": "zam_nekvit_neactiv" }; }
 
             }
         });
 
-        var lastalarmsW = document.getElementById('mess_div').offsetWidth;
-        var lastalarmsH = document.getElementById('mess_div').offsetHeight;
-        $("#lastalarms_table").setGridWidth(lastalarmsW - 19);
-        $("#lastalarms_table").setGridHeight(lastalarmsH - 30);
+        var lastalarmsW = document.getElementById('mess_divView').offsetWidth;
+        var lastalarmsH = document.getElementById('mess_divView').offsetHeight;
+        $("#lastalarms_table_view").setGridWidth(lastalarmsW - 19);
+        $("#lastalarms_table_view").setGridHeight(lastalarmsH - 30);
 
         //Квитирование по двойному клику
-        $("#lastalarms_table").jqGrid('setGridParam', {
+        $("#lastalarms_table_view").jqGrid('setGridParam', {
             ondblClickRow: function (rowid, iRow, iCol, e) {
                 var rowData = jQuery(this).getRowData(rowid);
                 var id = rowData['Id'];
                 var tag = rowData['Tag'];
                 var ack = rowData['Ack'];
                 var active = rowData['Active'];
-                kvitirovanie(rowid, id, tag, ack, active);
+                kvitirovanieView(rowid, id, tag, ack, active);
             }
         });
 
@@ -107,30 +132,38 @@
     function errkvit() {
       ErrMessage("Не квитировано");
     }
-    function getlastalarms() {
-        //читаем алармы
-        $.ajax({ type: "POST", url: "/api/Alarms/GetCurrentAlarms", async: true, success: page_drawAlarms });
+    function getlastalarmsView(AgzuId) {
+                if (AgzuId == undefined) { 
+                    AgzuId = document.getElementById("agzu").value;
+                }
+                else if (AgzuId != 0)
+                    document.getElementById("agzu").value = AgzuId;
+            LoadPageOn(); 
+        //читаем алармы 
+        $.ajax({ type: "POST", url: "/Alarms/GetCurrentAlarms", data: { id: AgzuId }, async: true, success: page_drawAlarmsView, error: page_nodraw });
     }
-    getlastalarms();
-    setInterval('getlastalarms()',30000);
-
-    function page_drawAlarms(data) {
+    getlastalarmsView(@Html.Raw(ViewBag.id));
+    setInterval('getlastalarmsView()',30000);
+    
+    function page_nodraw(data) {
+        ErrMessage("Не удалось обновить события");
+        LoadPageOff();
+    }
+    function page_drawAlarmsView(data) {
         //рисуем алармы
         var scrollPosition;
-        scrollPosition = jQuery("#lastalarms_table").closest(".ui-jqgrid-bdiv").scrollTop();
-        $("#lastalarms_table").jqGrid('clearGridData');
+        scrollPosition = jQuery("#lastalarms_table_view").closest(".ui-jqgrid-bdiv").scrollTop();
+        $("#lastalarms_table_view").jqGrid('clearGridData');
         var countmess = data.length;
-        //  $("#lastalarms_table").setGridParam({ data: data });
+        //  $("#lastalarms_table_view").setGridParam({ data: data });
 
-        for (var i = data.length - 1; i >= 0 ; i--) {
-            if (data[i].Ack == true || data[i].Ack == 1)  data[i].Ack = true; 
-            else data[i].Ack = false;
+        for (var i = data.length - 1; i >= 0 ; i--) { 
             if (data[i].Active == true || data[i].Active == 1)  data[i].Active = true; 
             else data[i].Active = false;
             if (data[i].Active == false ) { data[i].Message = 'Была тревога: ' + data[i].Message; }
             if (data[i].Active == true ) { data[i].EndTime = ''; }
-            if (data[i].Ack == false ) { data[i].AckTime = ''; }
-            $('#lastalarms_table').jqGrid('addRowData', data[i].Id,
+            if (data[i].Ack ==0 ) { data[i].AckTime = '';data[i].AckedBy = ''; }
+            $('#lastalarms_table_view').jqGrid('addRowData', data[i].Id,
             {
                 Id: data[i].Id,
                 StartReason: data[i].StartReason,
@@ -139,24 +172,26 @@
                 StartTime: data[i].StartTime,
                 EndTime: data[i].EndTime,
                 Ack: data[i].Ack,
+                AckedBy: data[i].AckedBy,
                 AckTime: data[i].AckTime,
                 Active: data[i].Active,
                 Duration: data[i].Duration
             });
 
             /*  if (data[i].Ack == false && data[i].Active == true)
-                  $('#lastalarms_table').jqGrid('setRowData', data[i].Id, false, "zam_nekvit_activ");
+                  $('#lastalarms_table_view').jqGrid('setRowData', data[i].Id, false, "zam_nekvit_activ");
               else if (data[i].Ack == true && data[i].Active == true)
-                  $('#lastalarms_table').jqGrid('setRowData', data[i].Id, false, "zam_kvit_activ");
+                  $('#lastalarms_table_view').jqGrid('setRowData', data[i].Id, false, "zam_kvit_activ");
               else
-                  $('#lastalarms_table').jqGrid('setRowData', data[i].Id, false, "zam_nekvit_neactiv");
+                  $('#lastalarms_table_view').jqGrid('setRowData', data[i].Id, false, "zam_nekvit_neactiv");
           */}
 
-        // $("#lastalarms_table").setGridParam({ rowNum: countmess }).trigger("reloadGrid");
+        // $("#lastalarms_table_view").setGridParam({ rowNum: countmess }).trigger("reloadGrid");
 
-        jQuery("#lastalarms_table").closest(".ui-jqgrid-bdiv").scrollTop(scrollPosition);
+        jQuery("#lastalarms_table_view").closest(".ui-jqgrid-bdiv").scrollTop(scrollPosition);
+        LoadPageOff();
     }
-    function kvitirovanie(rowid, id, tag, ack, active) {
+    function kvitirovanieView(rowid, id, tag, ack, active) {
         //if (!ack)
         //$.ajax({ type: "POST", url: '@Url.Action("SetAlarmAck", "Alarms")?id=' + id, async: true, success: getlastalarms, error: errkvit });
         
@@ -169,12 +204,12 @@
       //if (kvit) {
           if (active == 'true') {
               //getlastalarms();
-                  $.ajax({ type: "POST", url: "/api/Alarms/KvitAlarm", data: { Tag: tag, Id: id }, async: true, success: getlastalarms });
+              $.ajax({ type: "POST", url: "/Alarms/SetAlarmAck", data: { Tag: tag, Id: id }, async: true, success: getlastalarmsView });
           }
           else {
-              $.ajax({ type: "POST", url: "/api/Alarms/KvitAlarm", data: { Tag: tag, Id: id }, async: true });
-              $('#lastalarms_table').delRowData(rowid);
-              getlastalarms();
+              $.ajax({ type: "POST", url: "/Alarms/SetAlarmAck", data: { Tag: tag, Id: id }, async: true });
+              $('#lastalarms_table_view').delRowData(rowid);
+              getlastalarmsView();
           }
       // } else ErrMessage("Нет прав на квитирование");
     }

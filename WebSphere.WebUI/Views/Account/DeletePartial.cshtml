@@ -1,0 +1,32 @@
+﻿@model WebSphere.WebUI.Models.DeleteViewModel
+
+@Html.ValidationSummary(true)
+
+<div class="objs_for_op">
+    Пользователь(и):
+
+    @{
+        // используем сепаратор ';' для разделения объектов
+        int userCount = 0;
+        foreach (var i in Model.users)
+        {
+            if (userCount + 1 != Model.users.Count)
+            {
+                @i.UserName@:;
+            }
+            else
+            {
+                @i.UserName
+            }
+            userCount++;
+        }
+
+        // данные модели в hidden
+        for (var i = 0; i < Model.users.Count(); i++)
+        {
+            @Html.HiddenFor(u => u.users[i].Id)
+            @Html.HiddenFor(u => u.users[i].UserName)
+        }
+    }
+
+</div>

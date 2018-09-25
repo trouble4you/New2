@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,13 +9,14 @@ using WebSphere.Domain.Concrete;
 using WebSphere.Domain.Entities;
 
 namespace WebSphere.Domain.Abstract
-{ 
+{
 
     public class MyTrend
     {
-        public UInt64 id = 0;
+        public int id = 0;
         public List<Point> Points;
     }
+
     public class Point
     {
         public double v = 0;
@@ -39,11 +41,16 @@ namespace WebSphere.Domain.Abstract
         public UInt64 end_date = 0;
 
         public List<OrderedDictionary> signals = new List<OrderedDictionary>();
+        public List<Objects> objects = new List<Objects>();
     }
- 
+
+
     public interface ITrends
     { 
+        MemoryStream GetExcel(string sd, string ed, string signs);
         MyTrendData GetTrend(string sd, string ed, string signs);
+        MyTrendPage GetTrend(int id);
+        List<MyTrend> GetTrendOpc(string signs);
     }
-  
+
 }

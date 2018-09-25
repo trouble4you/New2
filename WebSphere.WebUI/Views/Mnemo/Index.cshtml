@@ -1,0 +1,145 @@
+﻿@using WebSphere.WebUI.Helpers;
+@{
+    ViewBag.Title = "Web Telemetry System «WebSphere» - Пользователь";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@{
+    // переменные
+    ViewBag.opc = false;
+    ViewBag.alarmsconf = false;
+    ViewBag.alarms = false;
+    ViewBag.reports = false;
+
+    if (User.Identity.IsAuthenticated)
+    {
+        // если есть доступ на добавление
+        if (DisplayContentBasedOnRole.IsAccess(User.Identity.Name, "Developer", "OpcStates"))
+        {
+            ViewBag.opc = true;
+        }// если есть доступ на добавление
+        if (DisplayContentBasedOnRole.IsAccess(User.Identity.Name, "Developer", "OpcStates"))
+        {
+            ViewBag.alarmsconf = true;
+        }// если есть доступ на добавление
+        if (DisplayContentBasedOnRole.IsAccess(User.Identity.Name, "Developer", "OpcStates"))
+        {
+            ViewBag.alarms = true;
+        }// если есть доступ на добавление
+        if (DisplayContentBasedOnRole.IsAccess(User.Identity.Name, "Developer", "ReportCheck"))
+        {
+            ViewBag.reports = true;
+        }
+    }
+}
+
+<script type="text/javascript">
+    $("#tagInfo").load(function () { partload });
+        var checkCopyNode = 0;
+        $(function () {
+            var t = $('#jstree').val();
+
+            $('#container').jstree({
+                @*'core': { 'data': [@Html.Raw(Model.CreateJsTree(1))] },*@
+                'core': {
+                    'data': [{
+                        'id': '2', 'text': 'СамараИнвестНефть', 'icon': 'jstree-type_1', 'children': [{ 'id': '26968', 'text': 'Крепостное', 'icon': 'jstree-type_21', 'children': [] }, { 'id': '26969', 'text': 'Вербовское', 'icon': 'jstree-type_21', 'children': [{ 'id': '23229', 'text': 'АГЗУ 4003', 'icon': 'jstree-type_5', 'children': [{ 'id': '21085', 'text': 'Электон', 'icon': 'jstree-type_5', 'children': [] }] }] }, { 'id': '26970', 'text': 'Южно-золоторевское', 'icon': 'jstree-type_21', 'children': [] }]
+                    }],
+                    "check_callback": true
+            },
+            "plugins": [ "state", "json_data"],
+        });
+
+            $('#container').bind("select_node.jstree", function (e, data) {
+                var id = data.instance.get_node(data.selected[0]).id;
+                var iconName = data.node.icon;
+                if (id == 23229)
+                    $('#tagInfo').load('@Url.Action("AGZU","Mnemo")?mnemo=AGZU&objname=%D0%92%D0%B5%D1%80%D0%B1%D0%BE%D0%B2%D1%81%D0%BA%D0%BE%D0%B5&port=Port2&type=MassEAOzna')
+                 else   if (id == 21085)
+                        $('#tagInfo').load('@Url.Action("Well", "Mnemo")?mnemo=electon2&objname=%D0%92%D0%B5%D1%80%D0%B1%D0%BE%D0%B2%D1%81%D0%BA%D0%BE%D0%B5&port=Port4&wellname=Electon_18_06_125')
+                                //.. check for error here ...
+                      })
+
+
+        });
+
+
+</script>
+
+
+<div class="left-box left-box-add">
+
+    <div id="id_model_extend" class="noUnderl">
+
+        <div class="left-box-top font13">
+
+            <ul class="Link_blue2">
+
+                <li id="id__opc" class="left_a">
+                    <div class="left_bottom_line">
+                        @if (ViewBag.opc)
+                        {
+                            <a href="javascript:void(0)" data-ref="/Developer/OpcStates">
+                                <span class="action__add"></span>Состояние ОРС
+                            </a>
+                        }
+                        @if (ViewBag.alarms)
+                        {
+                            <a href="javascript:void(0)" data-ref="/Developer/AlarmStates">
+                                <span class="action__add"></span>Состояние тревог
+                            </a>
+                        }
+                        @if (ViewBag.alarmsconf)
+                        {
+                            <a href="javascript:void(0)" data-ref="/Developer/AlarmCfgStates">
+                                <span class="action__add"></span>Состояние настроек тревог
+                            </a>
+                        }
+                        @if (ViewBag.reports)
+                        {
+                            <a href="javascript:void(0)" data-ref="/Developer/ReportCheck">
+                                <span class="action__add"></span>Проверка отчетов
+                            </a>
+                        }
+                        @if (ViewBag.reports)
+                        {
+                            <a href="javascript:void(0)" class="left_a" data-ref="/Developer/ReportCheck">
+                                <span class="action__add"></span>Добавить
+                            </a>
+                        }
+                        @if (ViewBag.reports)
+                        {
+                            <a href="javascript:void(0)" class="left_a" data-ref="/Developer/ReportCheck">
+                                <span class="action__add"></span>Проверка отчетов
+                            </a>
+                        }
+                    </div>
+                </li>
+
+            </ul>
+        </div>
+
+
+    </div>
+
+</div>
+<div class="right-box">
+
+    <div class="portlet floatL" id="id_main_div">
+
+        <div class="div_inline" id="id_datalist_main">
+            <div class="div_ListAndFilter">
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+

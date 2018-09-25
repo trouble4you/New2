@@ -10,13 +10,20 @@ namespace WebSphere.Domain.Abstract
 {
     public class TagValueContainer
     {
-        public TagId Tag;
+        public TagId Tag; 
         public float? LastAnalogValue;
         public bool? LastDiscreteValue;
         public string LastValue;
+        public bool Imitation;
+        public string RealLastValue;
         public DateTime LastLogged;
         public int Quality;
+        public long LogPeriod;
+        public double Deadband;
+        public bool Log;
     }
+ 
+
     public class FitValueContainer
     {
         public string Name;
@@ -29,14 +36,15 @@ namespace WebSphere.Domain.Abstract
         public DateTime last2H_Time;
         public float summto2H;
         public DateTime to2H_Time;
-         
+
         public float lastDay;
-        public float toDay; 
-        public float last2H; 
-        public float to2H; 
+        public float toDay;
+        public float last2H;
+        public float to2H;
     }
     public class TagId
     {
+        public int Id;
         public int PollerId;
         public string TagName;
 
@@ -82,6 +90,7 @@ namespace WebSphere.Domain.Abstract
         void Init();
         TagValueContainer ReadTag(TagId tag);
         TagValueContainer ReadTag(string tag);
+        TagValueContainer ReadTag(int tagId);
         List<TagValueContainer> ReadTags();
         bool WriteTag(TagId tag, string value);
         string OnReadOpcTag(string tag);
@@ -89,7 +98,8 @@ namespace WebSphere.Domain.Abstract
         bool Reinicialize(int pollerId);
         bool Connect(int pollerId);
         bool Stop(int pollerId);
-         
+        bool TagImit(TagId tag);
+
     }
-  
+
 }

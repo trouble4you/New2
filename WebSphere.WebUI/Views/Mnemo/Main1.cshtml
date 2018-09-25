@@ -1,0 +1,131 @@
+﻿@{
+    ViewBag.Title = "Web Telemetry System «WebSphere»";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link href="~/Content/_CSS/Reports/zerozam.css" rel="stylesheet" />
+<link href="~/Content/_CSS/Mnemo/MnemoSingle.css" rel="stylesheet" /> 
+<script type="text/javascript" src="~/Scripts/_JS/common/OpcReadWrite.js"></script> 
+<script type="text/javascript" src="~/Scripts/_JS/AdditionalFunctions.js"></script>
+<script type="text/javascript" src="~/Scripts/_JS/jquery/jquery-1.11.0.min.js"></script> 
+<script type="text/javascript" src="~/Scripts/_JS/common/MyTime.js"></script>
+<script type="text/javascript" src="~/Scripts/_JS/main.js"></script> 
+<script type="text/javascript" src="~/Scripts/snap/snap.svg.js"></script> 
+<script type="text/javascript" src="~/Scripts/SVG/Main.js"></script>
+<script type="text/javascript" src="~/Scripts/SVG/Tag_types_update.js"></script>
+  
+ <div >
+
+                                <ul class="Link_hui font24 noUnderl">
+                                    <li class=" borderR nowrap">
+                                        @Html.ActionLink("Главная", "Mnemo", "Mnemo", new { mnemo = "Main" }, null)
+                                        <span class="sep"></span>
+                                    </li>
+
+                                    <li class="  borderR nowrap   ">
+                                        @Html.ActionLink("Вербовское 4003", "AGZU", "Mnemo", new { mnemo = "AGZU", objname = "Вербовское", port = "Port2", type = "MassEAOzna" }, null)
+                                        <span class="sep"></span>
+                                    </li>
+													<li class=" borderR nowrap   ">
+														@Html.ActionLink("Электон", "Well", "Mnemo", new { mnemo = "electon", objname = "Вербовское", port = "Port4", wellname = "Electon_18_06_125" }, null)
+														<span class="sep"></span> 
+													</li> 
+
+                                    <li class=" borderR nowrap   ">
+                                        @Html.ActionLink("Крепостное 160", "AGZU", "Mnemo", new { mnemo = "AGZU1", objname = "Крепостное", port = "Port3", type = "MassOzna160" }, null)
+                                        <span class="sep"></span> 
+                                    </li>      
+									
+													<li class=" borderR nowrap   ">
+														@Html.ActionLink("151", "Well", "Mnemo", new { mnemo = "electon", objname = "Крепостное", port = "Port2", wellname = "Well151" }, null)
+														<span class="sep"></span> 
+													</li> 
+													<li class=" borderR nowrap   ">
+														@Html.ActionLink("153", "Well", "Mnemo", new { mnemo = "electon2", objname = "Крепостное", port = "Port2", wellname = "Well153" }, null)
+														<span class="sep"></span> 
+													</li> 
+													<li class=" borderR nowrap   ">
+														@Html.ActionLink("154", "Well", "Mnemo", new { mnemo = "electon2", objname = "Крепостное", port = "Port2", wellname = "Well154" }, null)
+														<span class="sep"></span> 
+													</li> 
+													<li class=" borderR nowrap   ">
+														@Html.ActionLink("155", "Well", "Mnemo", new { mnemo = "electon", objname = "Крепостное", port = "Port2", wellname = "Well155" }, null)
+														<span class="sep"></span> 
+													</li>                                      
+													<li class=" borderR nowrap   ">
+														@Html.ActionLink("159", "Well", "Mnemo", new { mnemo = "electon", objname = "Крепостное", port = "Port2", wellname = "Well159" }, null)
+														<span class="sep"></span> 
+													</li> 
+													<li class=" borderR nowrap   ">
+														@Html.ActionLink("164", "Well", "Mnemo", new { mnemo = "electon", objname = "Крепостное", port = "Port2", wellname = "Well164" }, null)
+														<span class="sep"></span> 
+													</li> 
+													<li class=" borderR nowrap   ">
+														@Html.ActionLink("165", "Well", "Mnemo", new { mnemo = "electon", objname = "Крепостное", port = "Port2", wellname = "Well165" }, null)
+														<span class="sep"></span> 
+													</li> 
+													<li class=" borderR nowrap   ">
+														@Html.ActionLink("166", "Well", "Mnemo", new { mnemo = "electon", objname = "Крепостное", port = "Port2", wellname = "Well166" }, null)
+														<span class="sep"></span> 
+													</li>  
+									
+									
+                                    <li class=" borderR nowrap ">
+                                        @Html.ActionLink("Южно-золоторевское 200", "AGZU", "Mnemo", new { mnemo = "AGZU1", objname= "Южно-золоторевское 200", port = "Port3", type = "MassOzna200" }, null)
+                                        <span class="sep"></span>
+                                    </li>                                    
+									<li class=" borderR nowrap   ">
+                                        @Html.ActionLink("251", "Well", "Mnemo", new { mnemo = "shgn", objname = "Южно-золоторевское 200", port = "Port2", wellname = "Well251_200" }, null)
+                                        <span class="sep"></span> 
+                                    </li> 
+                                    <li class=" borderR nowrap   ">
+                                        @Html.ActionLink("270", "Well", "Mnemo", new { mnemo = "electon2", objname = "Южно-золоторевское 200", port = "Port2", wellname = "Well270" }, null)
+                                        <span class="sep"></span> 
+                                    </li> 
+                                    <li class=" borderR nowrap   ">
+                                        @Html.ActionLink("310", "Well", "Mnemo", new { mnemo = "electon2", objname = "Южно-золоторевское 200", port = "Port2", wellname = "Well310" }, null)
+                                        <span class="sep"></span> 
+                                    </li> 
+                                    <li class=" borderR nowrap   ">
+                                        @Html.ActionLink("320", "Well", "Mnemo", new { mnemo = "shgn", objname = "Южно-золоторевское 200", port = "Port2", wellname = "Well320" }, null)
+                                        <span class="sep"></span> 
+                                    </li>  
+
+                                    <li class=" borderR nowrap head-top-left-r">
+                                        @Html.ActionLink("Южно-золоторевское 201", "AGZU", "Mnemo", new { mnemo = "AGZU1", objname = "Южно-золоторевское 201", port = "Port3", type = "MassOzna201" }, null)
+                                        <span class="sep"></span>
+                                    </li>
+                                    <li class=" borderR nowrap   ">
+                                        @Html.ActionLink("263", "Well", "Mnemo", new { mnemo = "electon2", objname = "Южно-золоторевское 201", port = "Port2", wellname = "Well263" }, null)
+                                        <span class="sep"></span> 
+                                    </li> 
+                                    <li class=" borderR nowrap   ">
+                                        @Html.ActionLink("271", "Well", "Mnemo", new { mnemo = "electon2", objname = "Южно-золоторевское 201", port = "Port2", wellname = "Well271" }, null)
+                                        <span class="sep"></span> 
+                                    </li> 
+                                    <li class=" borderR nowrap   ">
+                                        @Html.ActionLink("272", "Well", "Mnemo", new { mnemo = "shgn", objname = "Южно-золоторевское 201", port = "Port2", wellname = "Well272_295" }, null)
+                                        <span class="sep"></span> 
+                                    </li> 
+                                    <li class=" borderR nowrap   ">
+                                        @Html.ActionLink("318", "Well", "Mnemo", new { mnemo = "electon2", objname = "Южно-золоторевское 201", port = "Port2", wellname = "Well318" }, null)
+                                        <span class="sep"></span> 
+                                    </li> 
+                                    <li class=" borderR nowrap   ">
+                                        @Html.ActionLink("321", "Well", "Mnemo", new { mnemo = "electon", objname = "Южно-золоторевское 201", port = "Port2", wellname = "Well321" }, null)
+                                        <span class="sep"></span> 
+                                    </li> 
+                                 </ul>
+
+                            </div>
+<script type="text/javascript">
+
+
+    //<object id="svg" data="~/Content/_svg/Meteli.svg" type="image/svg+xml"></object>
+    // загрузка svg - файла
+    //window.addEventListener("load", InitMnemoSVG());
+
+    //window.addEventListener("load", function() {InitMnemoSVG();});
+     
+
+</script>
+ 
